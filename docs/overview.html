@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpendGuard — 개인 소비 이상탐지 콘솔</title>
+<style>
+:root{
+  --bg:#f5f7fb; --surface:#ffffff; --surface-2:#eef1f8;
+  --ink:#101420; --ink-2:#4b5468; --ink-3:#79839b;
+  --line:#e0e5f0; --line-2:#eaeef6;
+  --accent:#3d55e8; --accent-soft:#e7ebff; --violet:#6b45e0;
+  --g0:#8a93a8; --g1:#3d6bff; --g2:#c07d16; --g3:#dd6a26; --g4:#dc3b56; --ok:#17a673;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --maxw:920px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0a0c12; --surface:#12161f; --surface-2:#1a2030;
+    --ink:#eef1f8; --ink-2:#a4adc4; --ink-3:#6b7488;
+    --line:#242c3e; --line-2:#1c2231;
+    --accent:#6a83ff; --accent-soft:#1a2140; --violet:#9a7bff;
+    --g0:#5a6379; --g1:#5b83ff; --g2:#d6981f; --g3:#eb7c34; --g4:#f0556c; --ok:#26c98b;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f5f7fb; --surface:#ffffff; --surface-2:#eef1f8;
+  --ink:#101420; --ink-2:#4b5468; --ink-3:#79839b;
+  --line:#e0e5f0; --line-2:#eaeef6;
+  --accent:#3d55e8; --accent-soft:#e7ebff; --violet:#6b45e0;
+  --g0:#8a93a8; --g1:#3d6bff; --g2:#c07d16; --g3:#dd6a26; --g4:#dc3b56; --ok:#17a673;
+}
+:root[data-theme="dark"]{
+  --bg:#0a0c12; --surface:#12161f; --surface-2:#1a2030;
+  --ink:#eef1f8; --ink-2:#a4adc4; --ink-3:#6b7488;
+  --line:#242c3e; --line-2:#1c2231;
+  --accent:#6a83ff; --accent-soft:#1a2140; --violet:#9a7bff;
+  --g0:#5a6379; --g1:#5b83ff; --g2:#d6981f; --g3:#eb7c34; --g4:#f0556c; --ok:#26c98b;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;word-break:keep-all;
+  overflow-x:hidden}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+section{padding:76px 0;border-top:1px solid var(--line-2)}
+h2{font-size:clamp(24px,4vw,34px);letter-spacing:-.03em;margin:0 0 6px;font-weight:800;
+  text-wrap:balance;line-height:1.2}
+h3{font-size:18px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+p{margin:0 0 14px;color:var(--ink-2)}
+p strong{color:var(--ink);font-weight:650}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--accent);font-weight:600;margin-bottom:14px;display:block}
+.lead{font-size:18px;color:var(--ink-2);max-width:66ch}
+.mono{font-family:var(--mono)}
+
+/* theme toggle */
+.toggle{position:fixed;top:16px;right:16px;z-index:50;width:40px;height:40px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  display:grid;place-items:center;font-size:17px;transition:.2s}
+.toggle:hover{color:var(--accent);border-color:var(--accent)}
+.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- reveal ---------- */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}
+
+/* ---------- hero ---------- */
+.hero{padding:96px 0 84px;border-top:none;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:
+    radial-gradient(680px 380px at 78% 8%,var(--accent-soft),transparent 70%);
+  opacity:.7}
+.grid-bg{position:absolute;inset:0;z-index:-1;
+  background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+  background-size:38px 38px;mask-image:radial-gradient(680px 460px at 70% 30%,#000,transparent 75%);opacity:.5}
+.hero h1{font-size:clamp(34px,7vw,62px);line-height:1.04;letter-spacing:-.045em;margin:0 0 18px;
+  font-weight:850;text-wrap:balance}
+.hero h1 .hl{color:var(--accent)}
+.hero .sub{font-size:clamp(16px,2.4vw,20px);color:var(--ink-2);max-width:60ch;margin:0 0 30px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:38px}
+.chip{font-family:var(--mono);font-size:12px;padding:6px 11px;border-radius:999px;
+  border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.chip b{color:var(--accent);font-weight:700}
+
+/* live scorer */
+.scorer{background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  padding:22px;display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;
+  box-shadow:0 24px 60px -30px rgba(20,30,80,.35)}
+.gauge{position:relative;width:180px;height:112px}
+.gauge svg{width:180px;height:112px;overflow:visible}
+.gauge .val{position:absolute;left:0;right:0;top:52px;text-align:center;font-family:var(--mono);
+  font-weight:800;font-size:40px;letter-spacing:-.02em;line-height:1}
+.gauge .cap{position:absolute;left:0;right:0;top:96px;text-align:center;font-size:11px;
+  color:var(--ink-3);font-family:var(--mono);letter-spacing:.1em}
+.scorer .body .txline{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-bottom:10px}
+.scorer .body .txline b{color:var(--ink);font-weight:700}
+.gradepill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:800;
+  font-size:14px;padding:5px 12px;border-radius:8px;color:#fff;background:var(--g3);
+  opacity:0;transform:scale(.85);transition:.4s}
+.gradepill.show{opacity:1;transform:none}
+.reasons{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:7px}
+.reasons li{font-size:13.5px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;
+  opacity:0;transform:translateX(-8px);transition:.45s}
+.reasons li.show{opacity:1;transform:none}
+.reasons li::before{content:"";flex:0 0 6px;height:6px;border-radius:2px;background:var(--accent);margin-top:8px}
+.action{margin-top:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+.action b{color:var(--ok)}
+
+.run{margin-top:34px;background:#0c0f18;border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px;font-family:var(--mono);font-size:13px;color:#c9d3ee;overflow-x:auto}
+.run .p{color:#5b83ff}.run .c{color:#7b86a3}
+:root[data-theme="light"] .run{background:#0c0f18}
+
+/* ---------- two-gap comparison ---------- */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}
+.gapcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;
+  position:relative;overflow:hidden}
+.gapcard .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+.gapcard .ex{font-size:15px;color:var(--ink);margin:10px 0 16px;font-weight:600}
+.verdict{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding-top:12px;
+  border-top:1px dashed var(--line)}
+.verdict .old{color:var(--g4)}.verdict .new{color:var(--ok);font-weight:650}
+.verdict .lab{color:var(--ink-3);font-family:var(--mono);font-size:11px}
+
+/* ---------- pipeline ---------- */
+.pipe{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:24px}
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:8px}
+.layer{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface-2);
+  border-top:3px solid var(--accent)}
+.layer.l1{border-top-color:var(--ok)}.layer.l2{border-top-color:var(--g2)}.layer.l3{border-top-color:var(--violet)}
+.layer .lname{font-family:var(--mono);font-weight:800;font-size:14px;margin-bottom:2px}
+.layer .ldesc{font-size:12.5px;color:var(--ink-3);line-height:1.5}
+.layer .lmeta{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:9px;
+  padding-top:9px;border-top:1px solid var(--line)}
+.flow{height:56px;position:relative;margin-top:4px}
+.flow svg{width:100%;height:100%}
+.fuse{text-align:center;margin-top:2px}
+.fuse .box{display:inline-block;font-family:var(--mono);font-weight:700;font-size:13px;
+  border:1px solid var(--accent);color:var(--accent);border-radius:10px;padding:8px 16px;background:var(--accent-soft)}
+.gradebar{display:flex;gap:6px;margin-top:16px}
+.gradebar .g{flex:1;text-align:center;font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:7px 0;border-radius:7px;color:#fff}
+.g.a0{background:var(--g0)}.g.a1{background:var(--g1)}.g.a2{background:var(--g2)}.g.a3{background:var(--g3)}.g.a4{background:var(--g4)}
+.gradebar .g small{display:block;font-weight:500;opacity:.85;font-size:10px}
+
+/* ---------- distribution ---------- */
+.dist{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:center;margin-top:24px}
+.dist canvas{width:100%;height:220px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.dist .legend{display:grid;gap:12px}
+.leg{display:flex;gap:11px;align-items:flex-start;font-size:14px}
+.leg .sw{flex:0 0 26px;height:3px;margin-top:10px;border-radius:2px}
+.leg .sw.mean{background:var(--g4)}.leg .sw.rob{background:var(--accent)}
+.leg b{color:var(--ink)}
+
+/* ---------- workflow steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.step .n{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700}
+.step .t{font-weight:700;font-size:15px;margin:6px 0}
+.step .d{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+
+/* ---------- debugging journey ---------- */
+.journey{margin-top:30px;display:grid;gap:14px}
+.bug{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+  display:grid;grid-template-columns:1fr;gap:14px}
+.bug .head{display:flex;gap:12px;align-items:baseline}
+.bug .idx{font-family:var(--mono);font-weight:800;color:var(--accent);font-size:15px;flex:0 0 auto}
+.bug h3{margin:0}
+.bug .row{font-size:14px}
+.bug .row .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-bottom:2px}
+.bug .fix{color:var(--ink-2)}
+.metricbars{display:grid;gap:9px;margin-top:4px}
+.mb{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:center;font-size:12.5px}
+.mb .mlab{font-family:var(--mono);color:var(--ink-3)}
+.mb .track{position:relative;height:26px;background:var(--surface-2);border-radius:7px;overflow:hidden}
+.mb .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:7px;transition:width 1.1s cubic-bezier(.2,.7,.2,1);
+  display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-family:var(--mono);
+  font-size:11px;font-weight:700;color:#fff}
+.mb .fill.before{background:var(--g0)}
+.mb .fill.after{background:var(--accent)}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 18px;text-align:left}
+.kpi .k{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase}
+.kpi .v{font-family:var(--mono);font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--accent);
+  margin:6px 0 2px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;color:var(--ink-3)}
+.note{font-size:13px;color:var(--ink-3);margin-top:16px;font-style:italic}
+
+/* ---------- benefit / adr lists ---------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3{display:flex;gap:9px;align-items:center}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.card p{font-size:13.5px;margin:0}
+.adr{border-left:3px solid var(--accent)}
+
+/* ---------- stack table ---------- */
+.stack{width:100%;border-collapse:collapse;margin-top:22px;font-size:14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stack th{background:var(--surface-2);text-align:left;padding:11px 14px;font-size:12px;
+  font-family:var(--mono);letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase;font-weight:600}
+.stack td{padding:11px 14px;border-top:1px solid var(--line-2);vertical-align:top}
+.stack td:first-child{font-weight:650;white-space:nowrap}
+.stack td .mono{color:var(--accent)}
+
+/* honest / footer */
+.honest{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-top:8px}
+.honest p{font-size:14px}
+footer{padding:48px 0 70px;color:var(--ink-3);font-size:13px;text-align:center;border-top:1px solid var(--line-2)}
+footer .mono{color:var(--ink-2)}
+
+@media (max-width:760px){
+  .scorer{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .scorer .body{width:100%}
+  .reasons li{justify-content:flex-start;text-align:left}
+  .gap-grid,.cards,.dist{grid-template-columns:1fr}
+  .layers{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .mb{grid-template-columns:96px 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<button class="toggle" id="themeToggle" aria-label="테마 전환">◑</button>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="hero">
+  <div class="grid-bg"></div>
+  <div class="wrap">
+    <span class="eyebrow reveal in">Personal Anomaly Detection · Hybrid FDS</span>
+    <h1 class="reveal in d1">평소와 다른 결제를,<br><span class="hl">그 사람 기준으로</span> 잡아낸다.</h1>
+    <p class="sub reveal in d2">카드사 전사 FDS가 놓치는 구간 — <b>개인에게만 이상한 결제</b>를 개인 소비 분포로 학습해
+      실시간으로 포착하고, 알림·추가인증·카드정지로 대응하는 하이브리드 이상탐지 시스템의 참조 구현.</p>
+    <div class="badges reveal in d2">
+      <span class="chip">3계층 <b>Rule + Stats + ML</b></span>
+      <span class="chip">피처 <b>F01–F30</b></span>
+      <span class="chip">테스트 <b>18 passed</b></span>
+      <span class="chip">Python · SQLite · scikit-learn</span>
+    </div>
+
+    <div class="scorer reveal in d3" id="scorer">
+      <div class="gauge">
+        <svg viewBox="0 0 180 112" aria-hidden="true">
+          <path d="M14 106 A76 76 0 0 1 166 106" fill="none" stroke="var(--line)" stroke-width="12" stroke-linecap="round"/>
+          <path id="gaugeArc" d="M14 106 A76 76 0 0 1 166 106" fill="none" stroke="var(--g3)" stroke-width="12" stroke-linecap="round"/>
+        </svg>
+        <div class="val mono" id="gaugeVal">0</div>
+        <div class="cap">RISK SCORE</div>
+      </div>
+      <div class="body">
+        <div class="txline">거래 · <b>컴퓨존 온라인</b> <b>312,000원</b> · ONLINE · 금 19:30</div>
+        <span class="gradepill" id="gradePill">R3 · 고위험</span>
+        <ul class="reasons" id="reasons">
+          <li>전자·컴퓨터에서 평소 최고액(89,000원)의 <b>3.5배</b>예요</li>
+          <li>평소 결제 범위(중앙값 19,310원)에서 크게 벗어났어요</li>
+          <li>한 번도 이용한 적 없는 가맹점이에요</li>
+        </ul>
+        <div class="action" id="action">액션 → 알림 + 추가인증 · <b>자동정지 안 함</b> (R3의 설계 판단)</div>
+      </div>
+    </div>
+
+    <div class="run reveal in d3">
+      <span class="c"># 이 장면을 직접 재현</span><br>
+      <span class="p">python</span> scripts/demo.py
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ WHY ══════════ -->
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow reveal">왜 만들었는가</span>
+    <h2 class="reveal">"사기 탐지"가 아니라 "개인 분포로부터의 이탈 탐지"</h2>
+    <p class="lead reveal d1">카드사 FDS는 <b>전체 고객의 사기 패턴</b>에 맞춰져 있다. 그래서 사람마다 다른
+      "평소"의 경계에서 두 종류의 빈틈이 생긴다. SpendGuard는 정확히 그 빈틈을 메운다.</p>
+
+    <div class="gap-grid">
+      <div class="gapcard reveal d1">
+        <span class="tag">개인 이상 · 전체 정상</span>
+        <div class="ex">월 60만원 쓰는 사람의<br>30만원 PC부품 단건 결제</div>
+        <div class="verdict">
+          <span><span class="lab">기존 FDS</span><br><span class="old">통과 — 금액·업종 흔함</span></span>
+          <span style="text-align:right"><span class="lab">SpendGuard</span><br><span class="new">개인 상위 → 이상 후보</span></span>
+        </div>
+      </div>
+      <div class="gapcard reveal d2">
+        <span class="tag">전체 이상 · 개인 정상</span>
+        <div class="ex">매달 올리브영 20만원 쓰는<br>사람의 동일 패턴 결제</div>
+        <div class="verdict">
+          <span><span class="lab">기존 FDS</span><br><span class="old">고액 뷰티로 오탐 가능</span></span>
+          <span style="text-align:right"><span class="lab">SpendGuard</span><br><span class="new">프로파일 일치 → 통과</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PIPELINE ══════════ -->
+<section id="pipeline">
+  <div class="wrap">
+    <span class="eyebrow reveal">아키텍처 · 3계층 하이브리드</span>
+    <h2 class="reveal">세 계층은 서로 다른 실패 모드를 가진다. 그래서 조합하면 견고하다.</h2>
+    <p class="lead reveal d1">거래 한 건이 피처가 되고, 세 계층이 각자 채점하고, 융합·보정을 거쳐 등급이 된다.
+      <b>L3(ML)가 죽어도 L1+L2로 판정은 계속된다.</b></p>
+
+    <div class="pipe reveal d1">
+      <div class="layers">
+        <div class="layer l1">
+          <div class="lname">L1 · 룰</div>
+          <div class="ldesc">15개 결정론적 룰, 수확 체감 합산. 사람이 읽고 검증 가능.</div>
+          <div class="lmeta">&lt;5ms · 100% 설명가능</div>
+        </div>
+        <div class="layer l2">
+          <div class="lname">L2 · 통계</div>
+          <div class="ldesc">금액·맥락·시간·벨로시티 4축. 로버스트(MAD·분위수)로 사용자별 적응.</div>
+          <div class="lmeta">&lt;5ms · 수식으로 설명</div>
+        </div>
+        <div class="layer l3">
+          <div class="lname">L3 · ML</div>
+          <div class="ldesc">IsolationForest(비지도). 다변량 상호작용 포착. 선택적 계층.</div>
+          <div class="lmeta">~300ms · 부재 시 스킵</div>
+        </div>
+      </div>
+      <div class="flow">
+        <svg viewBox="0 0 600 56" preserveAspectRatio="none" aria-hidden="true">
+          <path id="fp1" d="M100 4 C100 34 300 22 300 50" fill="none" stroke="var(--line)" stroke-width="2"/>
+          <path id="fp2" d="M300 4 L300 50" fill="none" stroke="var(--line)" stroke-width="2"/>
+          <path id="fp3" d="M500 4 C500 34 300 22 300 50" fill="none" stroke="var(--line)" stroke-width="2"/>
+          <circle class="dot" r="4" fill="var(--ok)"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#fp1"/></animateMotion></circle>
+          <circle class="dot" r="4" fill="var(--g2)"><animateMotion dur="2.2s" begin="0.5s" repeatCount="indefinite"><mpath href="#fp2"/></animateMotion></circle>
+          <circle class="dot" r="4" fill="var(--violet)"><animateMotion dur="2.2s" begin="1s" repeatCount="indefinite"><mpath href="#fp3"/></animateMotion></circle>
+        </svg>
+      </div>
+      <div class="fuse"><span class="box">융합 → 최대계층 가산 → 맥락보정 → HARD OVERRIDE</span></div>
+      <div class="gradebar">
+        <div class="g a0">R0<small>정상 ~93%</small></div>
+        <div class="g a1">R1<small>피드 ~5%</small></div>
+        <div class="g a2">R2<small>무음알림 ~1.5%</small></div>
+        <div class="g a3">R3<small>알림+인증 ~0.4%</small></div>
+        <div class="g a4">R4<small>자동정지 ~0.1%</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ DISTRIBUTION ══════════ -->
+<section id="dist">
+  <div class="wrap">
+    <span class="eyebrow reveal">핵심 통계 판단 · ADR-002</span>
+    <h2 class="reveal">왜 평균±3σ를 버리고 중앙값·MAD를 쓰는가</h2>
+    <p class="lead reveal d1">소비 금액은 정규분포가 아니라 <b>강한 우편향 롱테일</b>이다. 과거의 고액 결제 한 건이
+      표준편차를 부풀려 임계값을 스스로 무력화한다.</p>
+    <div class="dist reveal d1">
+      <canvas id="distCanvas" width="520" height="220" aria-label="소비 금액 분포와 임계값 비교"></canvas>
+      <div class="legend">
+        <div class="leg"><span class="sw mean"></span><div><b>평균 + 3σ</b> — 극단값에 끌려 임계값이 오른쪽 끝으로 밀린다. 거의 모든 고액이 정상으로 통과.</div></div>
+        <div class="leg"><span class="sw rob"></span><div><b>중앙값 · MAD · p99</b> — 극단값에 강건. 개인 꼬리를 정확히 잡는다. 로그변환으로 분포를 대칭에 가깝게.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ WORKFLOW ══════════ -->
+<section id="workflow">
+  <div class="wrap">
+    <span class="eyebrow reveal">구현 워크플로우</span>
+    <h2 class="reveal">"L1+L2로 핵심을 먼저 증명하고, ML은 나중에"</h2>
+    <div class="steps">
+      <div class="step reveal d1"><div class="n">M1</div><div class="t">데이터 기반</div><div class="d">합성 생성기, 수집·정규화, DQ-01~08, 14종 택소노미, 특수가맹점 분류</div></div>
+      <div class="step reveal d1"><div class="n">M2</div><div class="t">프로파일·룰</div><div class="d">F01~F30 피처(누수방지), 로버스트 프로파일, L1 15룰, L2 4축, 근거 생성</div></div>
+      <div class="step reveal d2"><div class="n">M3</div><div class="t">ML·액션</div><div class="d">IsolationForest, 스코어 융합, 등급판정, 카드 상태머신, 피드백 루프</div></div>
+      <div class="step reveal d2"><div class="n">M4</div><div class="t">완성도</div><div class="d">walk-forward 백테스트, 성능지표, PSI 드리프트, HTML 대시보드</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ DEBUGGING JOURNEY ══════════ -->
+<section id="journey">
+  <div class="wrap">
+    <span class="eyebrow reveal">문제 발현과 해결 · 실제 디버깅 여정</span>
+    <h2 class="reveal">첫 백테스트 Recall은 34%였다. 여기서부터가 진짜 작업이었다.</h2>
+    <p class="lead reveal d1">탐지 성능의 대부분은 모델이 아니라 <b>데이터 생성 가정의 현실성</b>과
+      <b>평가 지표의 적합성</b>에서 나왔다. 합성 데이터 검증의 가장 위험한 함정이 바로 이것이다.</p>
+
+    <div class="journey">
+      <div class="bug reveal d1">
+        <div class="head"><span class="idx">01</span><h3>프로파일 오염 — 정상 사용자가 너무 "부자"로 보였다</h3></div>
+        <div class="row"><span class="k">발현</span>어떤 사용자의 <span class="mono">p99 = 12,980,000원</span>. 40만원 사기가 "정상 범위"로 통과.</div>
+        <div class="row fix"><span class="k">원인 → 해결</span>생성기 변동계수(2.2)×σ(1.4)=3.08이 천만원대 이상치를 자연 발생 → σ 상한 1.2, 금액 캡 150만원. 정상 프로파일이 좁아지자 사기가 비로소 떠올랐다.</div>
+        <div class="metricbars" data-metric>
+          <div class="mb"><span class="mlab">PR-AUC 전</span><div class="track"><div class="fill before" data-w="35" data-txt="0.35"></div></div></div>
+          <div class="mb"><span class="mlab">PR-AUC 후</span><div class="track"><div class="fill after" data-w="47" data-txt="0.47"></div></div></div>
+        </div>
+      </div>
+
+      <div class="bug reveal d1">
+        <div class="head"><span class="idx">02</span><h3>여행 중 해외결제가 임계값을 오염시켰다</h3></div>
+        <div class="row"><span class="k">발현</span>여행 해외결제 87건이 R2 근처에 몰려 진짜 이상과 경쟁 → 정밀도 저하.</div>
+        <div class="row fix"><span class="k">원인 → 해결</span>PRD가 설계한 <b>여행 모드</b> 완화 장치를 백테스트가 쓰지 않았다 → 생성기가 여행 기간을 등록하고 융합에서 여행+해외면 상한 처리.</div>
+        <div class="metricbars" data-metric>
+          <div class="mb"><span class="mlab">Precision 전</span><div class="track"><div class="fill before" data-w="62" data-txt="62%"></div></div></div>
+          <div class="mb"><span class="mlab">Precision 후</span><div class="track"><div class="fill after" data-w="78" data-txt="78%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="bug reveal d1">
+        <div class="head"><span class="idx">03</span><h3>스케일 회귀 — 40명에선 되는데 200명에선 무너졌다</h3></div>
+        <div class="row"><span class="k">발현</span>특정 사용자의 보험료 거래 <span class="mono">5,246건</span>, 결제 간격 중앙값 3일(월1회여야 정상). PR-AUC 0.60→0.35.</div>
+        <div class="row fix"><span class="k">원인 → 해결</span>hard negative 개수를 <b>거래 수 비율</b>로 잡아, 사건 하나가 최대 14건을 만들며 같은 유저에 수백 건이 몰림 → 사건 수를 <b>사용자 수에 비례</b>시켜 밀도를 스케일에 무관하게 고정.</div>
+        <div class="metricbars" data-metric>
+          <div class="mb"><span class="mlab">Event Recall 전</span><div class="track"><div class="fill before" data-w="69" data-txt="69%"></div></div></div>
+          <div class="mb"><span class="mlab">Event Recall 후</span><div class="track"><div class="fill after" data-w="79" data-txt="79%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="bug reveal d1">
+        <div class="head"><span class="idx">04</span><h3>"건 단위 recall"은 다건 사기에 맞지 않는 지표였다</h3></div>
+        <div class="row"><span class="k">통찰</span>카드도난 연속결제의 <b>첫 1~2건</b>은 개별적으로 정상과 구별 불가. 하지만 중요한 건 <b>사건을 카드정지 이전에 잡는 것</b>.</div>
+        <div class="row fix"><span class="k">해결</span><b>사건 단위 Recall</b> 도입 — 사건 내 한 건이라도 R3+면 그 시점에 카드가 정지되어 후속 결제 차단. FDS 평가의 표준 관점.</div>
+        <div class="run" style="margin-top:2px">
+          <span class="c">SC-02 카드도난 연속결제</span><br>
+          396,985원 → <b style="color:var(--g2)">R2</b>  (아직 속도 신호 미형성)<br>
+          410,208원 → <b style="color:var(--g2)">R2</b><br>
+          474,051원 → <b style="color:var(--g3)">R3</b>  ← 이 시점에 카드 정지, 이후 결제 차단
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ RESULTS ══════════ -->
+<section id="results">
+  <div class="wrap">
+    <span class="eyebrow reveal">결과 · 합성 데이터 · walk-forward 백테스트</span>
+    <h2 class="reveal">미래 정보 누수를 차단한 정량 평가</h2>
+    <div class="kpis" data-kpis>
+      <div class="kpi reveal d1"><div class="k">Event Recall (R3+)</div><div class="v"><span data-count="79.3" data-suffix="%">0</span></div><div class="d">사건 단위 · 카드정지 이전 포착</div></div>
+      <div class="kpi reveal d1"><div class="k">Precision @ top0.5%</div><div class="v"><span data-count="77.4" data-suffix="%">0</span></div><div class="d">알림 품질 · 목표 ≥60%</div></div>
+      <div class="kpi reveal d2"><div class="k">Lift @ 1%</div><div class="v"><span data-count="60.8" data-suffix="×">0</span></div><div class="d">무작위 대비 · 목표 ≥20×</div></div>
+      <div class="kpi reveal d2"><div class="k">PR-AUC</div><div class="v"><span data-count="0.636" data-dec="3">0</span></div><div class="d">불균형 데이터 주 지표</div></div>
+    </div>
+    <p class="note reveal">40명×9개월 기준. 200명×12개월 규모에서도 Event Recall 79% · Precision 57% · Lift 45×로 안정적.
+      등급 분포는 R0 59% / R1 29% / R2 8% / R3 2.1% / R4 0.2%로 기대 발생률과 일치.</p>
+  </div>
+</section>
+
+<!-- ══════════ BENEFITS ══════════ -->
+<section id="benefits">
+  <div class="wrap">
+    <span class="eyebrow reveal">사용자 · 사회적 이점</span>
+    <h2 class="reveal">탐지율만큼 중요한 것은 사용자가 기능을 끄지 않는 것</h2>
+    <div class="cards">
+      <div class="card reveal d1"><h3><span class="dot"></span>금융 취약계층 보호</h3><p>보이스피싱·명의도용은 종종 "그 사람에게만" 이상한 결제로 나타난다. 전사 FDS가 놓치는 이 구간을 개인 프로파일이 메운다. 민감도 프리셋으로 "조금이라도 이상하면 막아줘"까지 대응.</p></div>
+      <div class="card reveal d1"><h3><span class="dot"></span>오탐 피로 없는 신뢰</h3><p>대부분의 이상 후보는 사실 본인 결제다. 자동정지는 최고위험(R4)에서만, 나머지는 "알림 + 1탭 응답". 계산대 앞에서 카드가 막히는 경험을 최소화한다.</p></div>
+      <div class="card reveal d2"><h3><span class="dot"></span>설명받을 권리</h3><p>모든 판정에 사람이 읽을 수 있는 근거를 3줄 이내로. "이상 거래입니다"가 아니라 "평소 최고액의 3.5배이고 처음 이용하는 가맹점이에요".</p></div>
+      <div class="card reveal d2"><h3><span class="dot"></span>프라이버시 최소 수집</h3><p>카드번호·CVC·GPS·품목상세·주민번호를 <b>수집하지 않는다</b>. 카드는 토큰으로만, 지역은 시·군·구까지만. "덜 모으는 것"이 설계 원칙.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STACK + ADR ══════════ -->
+<section id="stack">
+  <div class="wrap">
+    <span class="eyebrow reveal">기술 스택 · 선택 근거</span>
+    <h2 class="reveal">"실시간"을 대용량 처리량 문제로 오해하지 않았다</h2>
+    <p class="lead reveal d1">요구는 <b>"거래 1건당 3초 이내"</b>이지 "초당 10만 건"이 아니다. 단건 저지연과 대용량은
+      전혀 다른 문제 — 그래서 Kafka·Spark를 도입하지 않았다.</p>
+    <table class="stack reveal d1">
+      <thead><tr><th>영역</th><th>사용</th><th>왜</th></tr></thead>
+      <tbody>
+        <tr><td>언어·수치</td><td><span class="mono">Python · NumPy</span></td><td>분위수·MAD·로그정규를 한 곳에서</td></tr>
+        <tr><td>ML</td><td><span class="mono">scikit-learn</span></td><td>라벨이 거의 없어 비지도(IsolationForest) 우선</td></tr>
+        <tr><td>저장</td><td><span class="mono">SQLite</span></td><td>멱등 인덱스·append-only·재현성 의미 보존</td></tr>
+        <tr><td>벨로시티</td><td><span class="mono">인메모리 window</span></td><td>Redis ZSET과 동일 의미(조회 후 기록)</td></tr>
+        <tr><td>대시보드</td><td><span class="mono">정적 HTML</span></td><td>외부 의존 없이 시각 리포트</td></tr>
+      </tbody>
+    </table>
+
+    <div class="cards" style="margin-top:26px">
+      <div class="card adr reveal d1"><h3>ADR-002 · 로버스트 통계</h3><p>롱테일 분포에서 평균 기반은 스스로 무력화된다. 로그변환 + MAD로 극단값에 강건하게.</p></div>
+      <div class="card adr reveal d1"><h3>ADR-003 · R4엔 룰 히트 필수</h3><p>설명 불가능한 이유로 카드를 막지 않는다. ML은 판단을 강화할 뿐 단독 근거가 되지 않는다.</p></div>
+      <div class="card adr reveal d2"><h3>무응답 ≠ 정상</h3><p>무응답을 정상으로 라벨링하면 진짜 사기를 정상으로 학습한다. 학습 데이터 오염을 원천 차단.</p></div>
+      <div class="card adr reveal d2"><h3>누수 방지</h3><p>모든 참조는 현재 거래를 제외한 과거 정보만. 벨로시티는 반드시 조회 후 기록.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ HONEST + RUN ══════════ -->
+<section id="honest">
+  <div class="wrap">
+    <span class="eyebrow reveal">한계와 정직한 고지</span>
+    <h2 class="reveal">한계를 스스로 밝히는 것이 신뢰도를 가장 크게 올린다</h2>
+    <div class="honest reveal d1">
+      <p><b>합성 데이터 기준이다.</b> 생성기가 만든 분포로 학습하고 같은 생성기가 만든 이상을 탐지하면 성능이 좋게 나오는 것이 당연하다. 생성 가정은 <span class="mono">simulator/generator.py</span>에 전부 명시했고, 실서비스 전환 시 공개 데이터셋(IEEE-CIS 등)으로 교차검증해야 한다.</p>
+      <p><b>ML의 겸손한 위치.</b> L3의 성능 기여는 생각보다 작고 비용은 크다. L1+L2가 핵심 주장을 증명하며 ML은 선택적 강화 계층이다(<span class="mono">--no-ml</span>로 끄고 비교 가능). 계층별 기여를 정직하게 보고하는 것이 오히려 분석 역량의 증거다.</p>
+      <p><b>법적 전제.</b> 합성 데이터 또는 사용자 본인이 업로드한 자기 데이터만 사용하며, 실서비스는 신용정보법 검토를 전제로 한다.</p>
+    </div>
+
+    <div class="run reveal d1" style="margin-top:26px">
+      <span class="c"># 직접 실행</span><br>
+      <span class="p">pip</span> install -r requirements.txt<br>
+      <span class="p">python</span> scripts/demo.py                              <span class="c"># 대표 시나리오 1건</span><br>
+      <span class="p">python</span> -m pytest tests/ -v                         <span class="c"># 18 passed</span><br>
+      <span class="p">python</span> scripts/run_pipeline.py --users 200 --months 12  <span class="c"># 전체 백테스트</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">SpendGuard · PRD v1.0 참조 구현</div>
+    <div>Rule + Statistics + ML · 개인 소비 분포 기반 이상탐지 · 합성 데이터 기준</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // theme toggle
+  var root = document.documentElement, tg = document.getElementById("themeToggle");
+  tg.addEventListener("click", function(){
+    var cur = root.getAttribute("data-theme");
+    if(!cur){ cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark":"light"; }
+    root.setAttribute("data-theme", cur==="dark" ? "light":"dark");
+    drawDist();
+  });
+
+  // reveal
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
+  }, {threshold:.14});
+  document.querySelectorAll(".reveal:not(.in)").forEach(function(el){ io.observe(el); });
+
+  // hero gauge sequence
+  var arc = document.getElementById("gaugeArc");
+  if(arc){
+    var L = arc.getTotalLength();
+    arc.style.strokeDasharray = L; arc.style.strokeDashoffset = L;
+    var target = 83, valEl = document.getElementById("gaugeVal");
+    function runGauge(){
+      var start = null, dur = reduce?0:1400;
+      function tick(ts){
+        if(!start) start = ts;
+        var p = dur? Math.min((ts-start)/dur,1) : 1;
+        var eased = 1-Math.pow(1-p,3);
+        var v = Math.round(eased*target);
+        valEl.textContent = v;
+        arc.style.strokeDashoffset = L - (L*0.5)*(v/100); // semicircle = half length
+        if(p<1){ requestAnimationFrame(tick); }
+        else {
+          document.getElementById("gradePill").classList.add("show");
+          var rs = document.querySelectorAll("#reasons li");
+          rs.forEach(function(li,i){ setTimeout(function(){ li.classList.add("show"); }, reduce?0:220*(i+1)); });
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    var heroIO = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ runGauge(); heroIO.disconnect(); }});
+    },{threshold:.4});
+    heroIO.observe(document.getElementById("scorer"));
+  }
+
+  // KPI count-up
+  function countUp(el){
+    var target = parseFloat(el.getAttribute("data-count"));
+    var dec = parseInt(el.getAttribute("data-dec")||"1",10);
+    var suffix = el.getAttribute("data-suffix")||"";
+    var dur = reduce?0:1200, start=null;
+    function tick(ts){
+      if(!start) start=ts;
+      var p = dur?Math.min((ts-start)/dur,1):1;
+      var eased = 1-Math.pow(1-p,3);
+      var v = (eased*target).toFixed(dec);
+      el.textContent = v + suffix;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  var kpiIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){
+      e.target.querySelectorAll("[data-count]").forEach(countUp); kpiIO.unobserve(e.target);
+    }});
+  },{threshold:.4});
+  document.querySelectorAll("[data-kpis]").forEach(function(el){ kpiIO.observe(el); });
+
+  // debugging metric bars
+  var barIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){
+      e.target.querySelectorAll(".fill").forEach(function(f){
+        f.style.width = f.getAttribute("data-w")+"%";
+        f.textContent = f.getAttribute("data-txt");
+      });
+      barIO.unobserve(e.target);
+    }});
+  },{threshold:.5});
+  document.querySelectorAll("[data-metric]").forEach(function(el){ barIO.observe(el); });
+
+  // distribution canvas
+  var cv = document.getElementById("distCanvas");
+  function cssvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function drawDist(){
+    if(!cv) return;
+    var dpr = window.devicePixelRatio||1;
+    var w = cv.clientWidth||520, h=220;
+    cv.width = w*dpr; cv.height=h*dpr;
+    var ctx = cv.getContext("2d"); ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,w,h);
+    var pad=14, base=h-30;
+    // log-normal-ish curve
+    function f(x){ // x in 0..1
+      var mu=0.22, s=0.16;
+      return Math.exp(-Math.pow(Math.log(x+0.02)-Math.log(mu),2)/(2*s*s))/(x+0.05);
+    }
+    var pts=[], max=0;
+    for(var i=0;i<=120;i++){ var x=i/120; var y=f(x); pts.push([x,y]); if(y>max)max=y; }
+    // area
+    var accent=cssvar("--accent"), red=cssvar("--g4"), line=cssvar("--line"), ink3=cssvar("--ink-3");
+    ctx.beginPath();
+    ctx.moveTo(pad, base);
+    pts.forEach(function(p){ ctx.lineTo(pad+p[0]*(w-2*pad), base-(p[1]/max)*(base-16)); });
+    ctx.lineTo(w-pad, base); ctx.closePath();
+    var grad=ctx.createLinearGradient(0,0,0,base);
+    grad.addColorStop(0, accent+"55"); grad.addColorStop(1, accent+"05");
+    ctx.fillStyle=grad; ctx.fill();
+    // curve stroke
+    ctx.beginPath();
+    pts.forEach(function(p,i){ var X=pad+p[0]*(w-2*pad), Y=base-(p[1]/max)*(base-16); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); });
+    ctx.strokeStyle=accent; ctx.lineWidth=2; ctx.stroke();
+    // baseline
+    ctx.strokeStyle=line; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad,base); ctx.lineTo(w-pad,base); ctx.stroke();
+    function vline(xr,color,label,dash){
+      var X=pad+xr*(w-2*pad);
+      ctx.setLineDash(dash?[5,4]:[]); ctx.strokeStyle=color; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(X,14); ctx.lineTo(X,base); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=color; ctx.font="600 11px ui-monospace,monospace";
+      ctx.fillText(label, Math.min(X+6, w-pad-90), 24);
+    }
+    vline(0.62, accent, "중앙값·p99", false);
+    vline(0.9, red, "평균+3σ", true);
+    // tail point
+    var tx=0.78, ty=base-(f(tx)/max)*(base-16);
+    ctx.beginPath(); ctx.arc(pad+tx*(w-2*pad), ty, 5, 0, Math.PI*2);
+    ctx.fillStyle=cssvar("--g3"); ctx.fill();
+    ctx.fillStyle=ink3; ctx.font="600 10px ui-monospace,monospace";
+    ctx.fillText("이 결제", pad+tx*(w-2*pad)-14, ty-10);
+  }
+  drawDist();
+  window.addEventListener("resize", drawDist);
+})();
+</script>
+</body>
+</html>

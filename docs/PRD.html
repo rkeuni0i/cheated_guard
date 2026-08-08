@@ -1,0 +1,2752 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Spendguard Prd",
+  "schemaVersion": 1,
+  "description": "SpendGuard PRD v1.0 — 소비패턴 학습 기반 개인 카드 이상거래 탐지 시스템의 제품 요구사항 문서 겸 기술 지침서. 아키텍처, DB 스키마/DDL, 피처 카탈로그, 3계층 탐지 알고리즘, API 명세, 액션 정책, 규제·보안, 테스트 전략, 12주 로드맵 포함.",
+  "mcpTools": [],
+  "mcpServerNames": []
+}
+</script>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpendGuard — 소비패턴 기반 이상거래 탐지 시스템 PRD &amp; 기술 지침서 v1.0</title>
+<style>
+:root{
+  --bg:#f7f8fa; --surface:#ffffff; --ink:#16181d; --ink-2:#4a5160; --ink-3:#7c8496;
+  --line:#e3e6ec; --line-2:#eef0f4;
+  --accent:#3d5afe; --accent-soft:#eef1ff;
+  --ok:#0f9d58; --ok-soft:#e8f6ee;
+  --warn:#c77700; --warn-soft:#fff5e5;
+  --danger:#d93025; --danger-soft:#fdecea;
+  --code-bg:#1c2030; --code-ink:#e6e9f2;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15.5px;line-height:1.75;-webkit-font-smoothing:antialiased;word-break:keep-all}
+.layout{display:flex;align-items:flex-start;max-width:1500px;margin:0 auto}
+
+/* ---------- sidebar ---------- */
+#toc{position:sticky;top:0;flex:0 0 296px;height:100vh;overflow-y:auto;
+  background:var(--surface);border-right:1px solid var(--line);padding:26px 18px 60px}
+#toc .brand{font-weight:800;font-size:17px;letter-spacing:-.02em;margin-bottom:2px}
+#toc .brand span{color:var(--accent)}
+#toc .ver{font-size:11.5px;color:var(--ink-3);margin-bottom:18px;font-family:var(--mono)}
+#toc a{display:block;padding:5px 10px;margin:1px 0;border-radius:6px;color:var(--ink-2);
+  text-decoration:none;font-size:13.2px;line-height:1.45;border-left:2px solid transparent}
+#toc a:hover{background:var(--accent-soft);color:var(--accent)}
+#toc a.lv1{font-weight:700;color:var(--ink);margin-top:9px;font-size:13.6px}
+#toc a.lv2{padding-left:22px;font-size:12.6px;color:var(--ink-3)}
+#toc a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:700}
+
+/* ---------- content ---------- */
+main{flex:1 1 auto;min-width:0;padding:0 46px 140px;max-width:1040px}
+.cover{padding:70px 0 44px;border-bottom:1px solid var(--line);margin-bottom:44px}
+.eyebrow{display:inline-block;background:var(--accent-soft);color:var(--accent);
+  font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;letter-spacing:.02em}
+h1{font-size:38px;line-height:1.25;letter-spacing:-.03em;margin:20px 0 10px;font-weight:800}
+.subtitle{font-size:17px;color:var(--ink-2);margin:0 0 26px;line-height:1.6}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.meta-grid div{background:var(--surface);padding:13px 16px}
+.meta-grid dt{font-size:11.5px;color:var(--ink-3);font-weight:700;letter-spacing:.03em;margin:0 0 3px}
+.meta-grid dd{margin:0;font-size:13.8px;font-weight:600}
+
+h2{font-size:26px;letter-spacing:-.025em;margin:66px 0 18px;padding-top:14px;font-weight:800;
+  border-top:3px solid var(--ink);display:flex;align-items:baseline;gap:12px}
+h2 .num{font-family:var(--mono);font-size:15px;color:var(--accent);font-weight:700}
+h3{font-size:19px;letter-spacing:-.015em;margin:38px 0 12px;font-weight:750}
+h4{font-size:15.5px;margin:26px 0 8px;font-weight:700;color:var(--ink-2)}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin:5px 0}
+li::marker{color:var(--ink-3)}
+strong{font-weight:700}
+code{font-family:var(--mono);font-size:.87em;background:#eceff5;padding:2px 6px;
+  border-radius:4px;color:#2d3550;white-space:nowrap}
+pre{background:var(--code-bg);color:var(--code-ink);padding:18px 20px;border-radius:10px;
+  overflow-x:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;margin:0 0 18px}
+pre code{background:none;padding:0;color:inherit;font-size:inherit;white-space:pre}
+.cap{font-size:12.5px;color:var(--ink-3);margin:-10px 0 22px;text-align:left}
+
+table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:13.4px;
+  background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{background:#f0f2f6;text-align:left;padding:10px 12px;font-weight:750;font-size:12.6px;
+  border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line-2);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbfd}
+td code,th code{font-size:12px;white-space:normal}
+.tbl-wrap{overflow-x:auto;margin-bottom:20px}
+.tbl-wrap table{margin-bottom:0}
+
+.box{border-radius:10px;padding:15px 18px;margin:0 0 20px;border:1px solid;font-size:14.2px}
+.box p:last-child{margin-bottom:0}
+.box .t{font-weight:750;margin-bottom:5px;font-size:13.5px;letter-spacing:.01em}
+.box.info{background:var(--accent-soft);border-color:#c9d2ff;color:#1e2a6b}
+.box.info .t{color:var(--accent)}
+.box.ok{background:var(--ok-soft);border-color:#bfe3cd;color:#0c5c36}
+.box.ok .t{color:var(--ok)}
+.box.warn{background:var(--warn-soft);border-color:#f2dcb0;color:#7a4d00}
+.box.warn .t{color:var(--warn)}
+.box.danger{background:var(--danger-soft);border-color:#f6c6c1;color:#8c1d16}
+.box.danger .t{color:var(--danger)}
+
+.chip{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:5px;
+  font-family:var(--mono);letter-spacing:.02em;white-space:nowrap}
+.c-p0{background:#fdecea;color:#a5150c}
+.c-p1{background:#fff5e5;color:#8a5300}
+.c-p2{background:#eef1ff;color:#2c3fb8}
+.c-p3{background:#eef0f4;color:#5a6274}
+.c-ok{background:#e8f6ee;color:#0c6b3d}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:22px;overflow-x:auto;margin:0 0 8px}
+.diagram pre{background:none;color:var(--ink-2);padding:0;font-size:12.2px;line-height:1.5;margin:0}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:0 0 22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .k{font-size:11.5px;color:var(--ink-3);font-weight:700;margin-bottom:4px}
+.kpi .v{font-size:23px;font-weight:800;letter-spacing:-.02em;color:var(--accent)}
+.kpi .d{font-size:11.8px;color:var(--ink-3);margin-top:2px;line-height:1.45}
+
+.layer{border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--surface);
+  border-radius:8px;padding:14px 18px;margin:0 0 12px}
+.layer .h{font-weight:750;font-size:14.5px;margin-bottom:4px}
+.layer.l1{border-left-color:#0f9d58}
+.layer.l2{border-left-color:#c77700}
+.layer.l3{border-left-color:#7c4dff}
+
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+a.ref{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9d2ff}
+a.ref:hover{border-bottom-color:var(--accent)}
+.footnote{font-size:12.8px;color:var(--ink-3)}
+.anchor-pad{scroll-margin-top:20px}
+
+@media (max-width:1000px){
+  #toc{display:none}
+  main{padding:0 20px 90px;max-width:100%}
+  h1{font-size:29px}
+  h2{font-size:22px}
+}
+@media print{
+  #toc{display:none} main{padding:0;max-width:100%}
+  body{font-size:10.5pt;background:#fff}
+  h2{page-break-after:avoid} table,pre,.box{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav id="toc">
+  <div class="brand">Spend<span>Guard</span></div>
+  <div class="ver">PRD v1.0 · 2026-08-08</div>
+  <a class="lv1" href="#s0">0. 문서 개요</a>
+  <a class="lv1" href="#s1">1. 프로젝트 정의</a>
+  <a class="lv2" href="#s1-1">1.1 배경과 문제</a>
+  <a class="lv2" href="#s1-2">1.2 목표 / 비목표</a>
+  <a class="lv2" href="#s1-3">1.3 성공 지표</a>
+  <a class="lv2" href="#s1-4">1.4 용어 정의</a>
+  <a class="lv1" href="#s2">2. 사용자와 시나리오</a>
+  <a class="lv2" href="#s2-1">2.1 페르소나</a>
+  <a class="lv2" href="#s2-2">2.2 유저 스토리</a>
+  <a class="lv2" href="#s2-3">2.3 대표 시나리오 워크스루</a>
+  <a class="lv1" href="#s3">3. 시스템 아키텍처</a>
+  <a class="lv2" href="#s3-1">3.1 전체 구성도</a>
+  <a class="lv2" href="#s3-2">3.2 컴포넌트 명세</a>
+  <a class="lv2" href="#s3-3">3.3 이중 경로 데이터 플로우</a>
+  <a class="lv2" href="#s3-4">3.4 기술 스택과 선정 근거</a>
+  <a class="lv1" href="#s4">4. 데이터 설계</a>
+  <a class="lv2" href="#s4-1">4.1 데이터 소스</a>
+  <a class="lv2" href="#s4-2">4.2 ERD</a>
+  <a class="lv2" href="#s4-3">4.3 테이블 DDL</a>
+  <a class="lv2" href="#s4-4">4.4 인덱스·파티셔닝</a>
+  <a class="lv2" href="#s4-5">4.5 카테고리 택소노미</a>
+  <a class="lv2" href="#s4-6">4.6 데이터 품질 규칙</a>
+  <a class="lv1" href="#s5">5. 피처 엔지니어링</a>
+  <a class="lv2" href="#s5-1">5.1 피처 카탈로그</a>
+  <a class="lv2" href="#s5-2">5.2 시간 윈도우 집계</a>
+  <a class="lv2" href="#s5-3">5.3 온·오프라인 일관성</a>
+  <a class="lv2" href="#s5-4">5.4 콜드스타트</a>
+  <a class="lv1" href="#s6">6. 이상 탐지 엔진</a>
+  <a class="lv2" href="#s6-1">6.1 3계층 하이브리드</a>
+  <a class="lv2" href="#s6-2">6.2 L1 룰 엔진</a>
+  <a class="lv2" href="#s6-3">6.3 L2 통계 모델</a>
+  <a class="lv2" href="#s6-4">6.4 L3 ML 모델</a>
+  <a class="lv2" href="#s6-5">6.5 스코어 융합</a>
+  <a class="lv2" href="#s6-6">6.6 의사코드</a>
+  <a class="lv2" href="#s6-7">6.7 임계값 튜닝</a>
+  <a class="lv2" href="#s6-8">6.8 설명가능성</a>
+  <a class="lv1" href="#s7">7. 액션 정책</a>
+  <a class="lv2" href="#s7-1">7.1 리스크 등급</a>
+  <a class="lv2" href="#s7-2">7.2 액션 매트릭스</a>
+  <a class="lv2" href="#s7-3">7.3 알림 카피</a>
+  <a class="lv2" href="#s7-4">7.4 카드 상태 머신</a>
+  <a class="lv2" href="#s7-5">7.5 피드백 루프</a>
+  <a class="lv1" href="#s8">8. UX 플로우</a>
+  <a class="lv1" href="#s9">9. API 명세</a>
+  <a class="lv2" href="#s9-1">9.1 설계 원칙</a>
+  <a class="lv2" href="#s9-2">9.2 엔드포인트 목록</a>
+  <a class="lv2" href="#s9-3">9.3 요청·응답 예시</a>
+  <a class="lv2" href="#s9-4">9.4 웹훅 이벤트</a>
+  <a class="lv1" href="#s10">10. 모델 운영(MLOps)</a>
+  <a class="lv1" href="#s11">11. 규제·보안</a>
+  <a class="lv1" href="#s12">12. 비기능 요구사항</a>
+  <a class="lv1" href="#s13">13. 테스트 전략</a>
+  <a class="lv1" href="#s14">14. 운영 지표</a>
+  <a class="lv1" href="#s15">15. 로드맵</a>
+  <a class="lv1" href="#s16">16. 리스크 레지스터</a>
+  <a class="lv1" href="#s17">부록 A~D</a>
+</nav>
+<main>
+
+<header class="cover">
+  <span class="eyebrow">PRODUCT REQUIREMENTS DOCUMENT · 기술 지침서</span>
+  <h1>SpendGuard<br>소비패턴 학습 기반 개인 카드 이상거래 탐지 시스템</h1>
+  <p class="subtitle">사용자의 평상시 소비 습관을 통계적으로 모델링하고, 그 분포에서 벗어난 결제를 실시간으로 포착해<br>알림·추가인증·카드정지로 대응하는 하이브리드 FDS(Fraud Detection System) 설계 문서</p>
+  <dl class="meta-grid">
+    <div><dt>문서 버전</dt><dd>v1.0 (Baseline)</dd></div>
+    <div><dt>작성일</dt><dd>2026-08-08</dd></div>
+    <div><dt>프로젝트 유형</dt><dd>데이터 분석 / 포트폴리오</dd></div>
+    <div><dt>탐지 방식</dt><dd>Rule + Statistics + ML</dd></div>
+    <div><dt>목표 기간</dt><dd>12주 (4 마일스톤)</dd></div>
+    <div><dt>문서 상태</dt><dd>Ready for Build</dd></div>
+  </dl>
+</header>
+
+<h2 id="s0" class="anchor-pad"><span class="num">00</span>문서 개요</h2>
+
+<p>이 문서는 “사용자 결제 데이터를 축적해 평소 소비 범위를 학습하고, 그 범위를 벗어난 거래를 이상으로 판정해 알림·카드정지로 이어지게 한다”는 초기 워크플로우를 <strong>실제로 구현 가능한 수준</strong>까지 구체화한 것이다. 기획서(PRD)와 기술 지침서를 하나로 합쳤으며, 각 장은 다음 독자를 대상으로 한다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>독자</th><th>필수 정독</th><th>참고</th></tr></thead>
+<tbody>
+<tr><td>기획·발표자</td><td>1, 2, 7, 8, 15장</td><td>16장 리스크</td></tr>
+<tr><td>백엔드 개발</td><td>3, 4, 9, 12장</td><td>7.4 상태 머신</td></tr>
+<tr><td>데이터·ML</td><td>4, 5, 6, 10, 13장</td><td>부록 A 데이터 생성</td></tr>
+<tr><td>보안·컴플라이언스 검토</td><td>11장</td><td>4.1 수집 항목</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box info">
+  <div class="t">이 문서의 원본 아이디어</div>
+  <p>사용자가 정리한 두 갈래 흐름 — ① <em>데이터 축적 → 분석 → 평소 사용 범위 설정 → 소비 습관 프로파일 저장</em>, ② <em>신규 거래 유입 → 프로파일과 대비 → 이상 추정 → 알림·카드정지</em> — 이 각각 본 문서의 <strong>Profiling Path(3.3.A)</strong>와 <strong>Scoring Path(3.3.B)</strong>로 대응된다. 원안의 구조는 그대로 유지하되, 실무에서 반드시 필요한 <em>오탐 관리·설명가능성·피드백 루프·규제 대응</em>을 추가했다.</p>
+</div>
+
+<h4>본 문서의 표기 규약</h4>
+<ul>
+<li><span class="chip c-p0">P0</span> 없으면 제품이 성립하지 않는 필수 요구사항 · <span class="chip c-p1">P1</span> 1차 릴리스 포함 · <span class="chip c-p2">P2</span> 후속 확장 · <span class="chip c-p3">P3</span> 아이디어 백로그</li>
+<li>요구사항 ID는 <code>FR-*</code>(기능), <code>NFR-*</code>(비기능), <code>AC-*</code>(수용 기준)으로 부여한다.</li>
+<li>금액 단위는 별도 표기가 없으면 KRW이며, 모든 시각은 <code>Asia/Seoul</code> 기준이다.</li>
+<li>DB는 PostgreSQL 16 문법을 기준으로 기술한다.</li>
+</ul>
+
+<h2 id="s1" class="anchor-pad"><span class="num">01</span>프로젝트 정의</h2>
+
+<h3 id="s1-1" class="anchor-pad">1.1 배경과 문제 정의</h3>
+
+<p>카드사는 이미 FDS를 운영하지만, 그 기준은 <strong>“카드사 전체 고객의 사기 패턴”</strong>에 맞춰져 있다. 해외 IP, 심야 고액 승인, 동일 가맹점 연속 승인 같은 <em>사기꾼의 행동 패턴</em>을 잡는 데 특화되어 있어서, 다음 두 구간이 비게 된다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>구간</th><th>사례</th><th>기존 FDS</th><th>SpendGuard</th></tr></thead>
+<tbody>
+<tr><td><strong>개인 기준 이상 · 전체 기준 정상</strong></td><td>평소 월 60만 원 쓰는 사용자의 30만 원 PC 부품 단건 결제</td><td>정상 통과 (금액·가맹점 모두 흔함)</td><td>개인 분포 상위 0.3% → 이상 후보</td></tr>
+<tr><td><strong>전체 기준 이상 · 개인 기준 정상</strong></td><td>매달 올리브영에서 20만 원씩 쓰는 사용자의 동일 패턴 결제</td><td>고액 뷰티 결제로 오탐 가능</td><td>개인 프로파일과 일치 → 통과</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>즉 이 프로젝트의 본질은 <strong>“사기 탐지”가 아니라 “개인 소비 분포로부터의 이탈 탐지(personal anomaly detection)”</strong>이다. 이 구분이 프로젝트 전체의 설계 판단을 지배한다. 라벨(사기 여부)이 거의 없다는 뜻이고, 따라서 6장의 모델 설계는 지도학습이 아니라 <em>비지도 + 룰 + 약한 라벨</em> 조합을 중심에 둔다.</p>
+
+<h4>해결해야 할 3가지 핵심 난제</h4>
+<ol>
+<li><strong>“평소”의 정의</strong> — 소비는 정규분포가 아니다. 대부분 소액이고 가끔 고액인 <em>롱테일·로그정규</em> 형태다. 단순 평균±3σ는 거의 모든 고액 결제를 이상으로 만든다. → 6.3에서 로버스트 통계로 해결.</li>
+<li><strong>맥락 의존성</strong> — 같은 30만 원도 “매달 가던 가전 매장”이면 정상, “처음 보는 온라인 부품몰 + 새벽 3시”면 이상이다. 금액 하나로 판단할 수 없다. → 5장 피처 설계로 해결.</li>
+<li><strong>오탐 비용의 비대칭</strong> — 미탐 1건은 금전 손실이지만, 오탐 1건은 <em>계산대 앞에서 카드가 막히는</em> 경험이다. 사용자는 오탐 3회면 기능을 꺼버린다. → 7장 등급별 액션 분리로 해결.</li>
+</ol>
+
+<h3 id="s1-2" class="anchor-pad">1.2 목표와 비목표</h3>
+
+<h4>Goals</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>목표</th><th>측정 방법</th><th>우선순위</th></tr></thead>
+<tbody>
+<tr><td>G1</td><td>사용자별 소비 프로파일을 자동 구축하고 주기적으로 갱신한다</td><td>활성 사용자 중 프로파일 보유 비율 ≥ 99%</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>G2</td><td>개인 기준 이상거래를 승인 직후 3초 이내에 판정한다</td><td>p99 종단 지연 &lt; 3s</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>G3</td><td>판정 결과에 사람이 읽을 수 있는 근거를 함께 제공한다</td><td>알림 100%에 근거 문구 포함</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>G4</td><td>오탐을 사용자가 1탭으로 해제하고, 그 피드백이 모델에 반영된다</td><td>해제 후 동일 패턴 재알림률 &lt; 5%</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>G5</td><td>고위험 거래에 대해 카드 정지를 자동 실행한다</td><td>R4 등급 거래의 정지 성공률 ≥ 99%</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>G6</td><td>백테스트로 탐지 성능을 정량 검증한다</td><td>주입 이상 시나리오 Recall ≥ 0.85 @ FPR ≤ 0.5%</td><td><span class="chip c-p1">P1</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>Non-Goals (이번 범위에서 명시적으로 제외)</h4>
+<ul>
+<li><strong>실제 카드사 승인 네트워크 연동</strong> — 승인 거절(decline) 권한은 카드사만 가진다. 본 프로젝트는 승인 <em>이후</em> 데이터를 받아 사후 탐지하고, 카드 정지는 카드사 API 호출로 위임하는 모델을 가정한다. (실 연동 대신 부록 A의 시뮬레이터 사용)</li>
+<li><strong>카드사 전사 사기 패턴 탐지</strong> — 도난·복제·가맹점 공모 등 크로스 유저 패턴은 다루지 않는다. 오직 개인 프로파일 이탈만 본다.</li>
+<li><strong>신용평가·한도 산정</strong> — 신용정보법상 별도 인가 영역이며 목적 외 이용에 해당한다.</li>
+<li><strong>실시간 스트리밍 인프라(Kafka/Flink) 구축</strong> — 포트폴리오 규모에서는 과잉이다. 3.4에서 대체안을 제시한다.</li>
+<li><strong>다국가·다통화 지원</strong> — KRW 단일 통화, 국내 가맹점만 가정한다(해외 거래는 룰 R-07로 일괄 고위험 처리).</li>
+</ul>
+
+<h3 id="s1-3" class="anchor-pad">1.3 성공 지표</h3>
+
+<p>North Star Metric은 <strong>“탐지된 진짜 이상거래 수 ÷ 사용자가 받은 알림 수”</strong>, 즉 <em>알림 정밀도(Alert Precision)</em>로 둔다. 탐지 건수만 늘리면 알림 폭탄이 되고, 정밀도만 높이면 아무것도 못 잡기 때문에 두 축을 함께 본다.</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="k">ALERT PRECISION</div><div class="v">≥ 60%</div><div class="d">알림 중 사용자가 “내가 안 했다/의심스럽다”로 확인한 비율</div></div>
+  <div class="kpi"><div class="k">RECALL @ 백테스트</div><div class="v">≥ 85%</div><div class="d">주입한 이상 시나리오 중 탐지 성공 비율</div></div>
+  <div class="kpi"><div class="k">일간 알림 수</div><div class="v">≤ 0.5건</div><div class="d">사용자 1인당 하루 평균 알림 (피로도 상한)</div></div>
+  <div class="kpi"><div class="k">p99 판정 지연</div><div class="v">&lt; 3s</div><div class="d">거래 수신 → 액션 결정 완료</div></div>
+  <div class="kpi"><div class="k">오탐 해제율</div><div class="v">≤ 40%</div><div class="d">알림 중 “내가 했어요” 처리 비율</div></div>
+  <div class="kpi"><div class="k">기능 유지율</div><div class="v">≥ 90%</div><div class="d">30일 후에도 기능을 끄지 않은 사용자 비율</div></div>
+</div>
+
+<div class="box warn">
+  <div class="t">지표 설계 시 주의</div>
+  <p>Accuracy는 절대 쓰지 않는다. 이상거래는 전체의 0.1~1% 수준이라, “전부 정상”이라고 답해도 정확도 99%가 나온다. 평가는 반드시 <strong>PR-AUC, Precision@k, Recall@FPR</strong> 기준으로 한다(6.7, 10.2 참조).</p>
+</div>
+
+<h3 id="s1-4" class="anchor-pad">1.4 용어 정의</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>용어</th><th>정의</th></tr></thead>
+<tbody>
+<tr><td><strong>거래(Transaction)</strong></td><td>카드 승인 1건. 취소·부분취소는 별도 레코드로 연결(<code>original_tx_id</code>).</td></tr>
+<tr><td><strong>프로파일(Profile)</strong></td><td>사용자의 “평소 소비 범위”를 나타내는 통계량 집합. 전체·카테고리별·시간대별 3층으로 구성.</td></tr>
+<tr><td><strong>단순 거래(Routine Transaction)</strong></td><td>반복성이 높고 금액 변동이 작은 거래(교통·통신요금·구독 등). 프로파일 학습에서는 사용하되 스코어링에서는 감쇠 처리.</td></tr>
+<tr><td><strong>특수 가맹점(Special Merchant)</strong></td><td>동일 가맹점 안에서 금액 분산이 매우 큰 업종(올리브영·다이소·대형마트 등). 4.5에서 별도 분포로 관리.</td></tr>
+<tr><td><strong>리스크 스코어</strong></td><td>0~100 정수. L1/L2/L3 결과를 융합한 최종 이상 정도.</td></tr>
+<tr><td><strong>리스크 등급(R0~R4)</strong></td><td>스코어를 액션에 매핑한 이산 등급. 7.1 참조.</td></tr>
+<tr><td><strong>오탐(False Positive)</strong></td><td>이상으로 판정했으나 사용자가 본인 거래로 확인한 건.</td></tr>
+<tr><td><strong>미탐(False Negative)</strong></td><td>실제 부정 사용이었으나 통과시킨 건.</td></tr>
+<tr><td><strong>콜드스타트</strong></td><td>거래 이력이 프로파일 생성 최소 기준(30건/14일) 미만인 상태.</td></tr>
+<tr><td><strong>MCC</strong></td><td>Merchant Category Code. 가맹점 업종 코드(4자리). 내부 카테고리로 매핑해 사용.</td></tr>
+<tr><td><strong>PSI</strong></td><td>Population Stability Index. 피처 분포 변화 감지 지표(10.3).</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="s2" class="anchor-pad"><span class="num">02</span>사용자와 시나리오</h2>
+
+<h3 id="s2-1" class="anchor-pad">2.1 페르소나</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>페르소나</th><th>상황</th><th>핵심 니즈</th><th>설계 함의</th></tr></thead>
+<tbody>
+<tr><td><strong>P1. 김소비 (27, 직장인)</strong><br>주 사용자</td><td>카드 1~2장, 월 100만 원대 지출. 명세서를 잘 안 본다.</td><td>“내가 모르는 결제가 생기면 즉시 알려줘. 근데 자꾸 귀찮게는 하지 마.”</td><td>알림 빈도 상한, 1탭 해제, 근거 문구 필수</td></tr>
+<tr><td><strong>P2. 이변동 (34, 프리랜서)</strong><br>고변동 사용자</td><td>월별 지출 편차가 크고 장비·자재를 불규칙하게 구매.</td><td>“큰 결제도 내 패턴이라는 걸 알아줬으면.”</td><td>개인 분산을 반영한 적응형 임계값, 학습 기간 연장</td></tr>
+<tr><td><strong>P3. 박안심 (58, 자영업)</strong><br>보수적 사용자</td><td>보이스피싱·명의도용 우려가 크다.</td><td>“조금이라도 이상하면 무조건 막아줘.”</td><td>민감도 프리셋(보수/기본/민감) 제공</td></tr>
+<tr><td><strong>P4. 운영자 (내부)</strong></td><td>탐지 성능과 오탐률을 모니터링, 룰을 조정.</td><td>“어떤 룰이 오탐을 만드는지 보고 끄고 싶다.”</td><td>룰별 성능 대시보드, 룰 온·오프 토글</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s2-2" class="anchor-pad">2.2 유저 스토리 &amp; 기능 요구사항</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>유저 스토리</th><th>수용 기준(요약)</th><th>P</th></tr></thead>
+<tbody>
+<tr><td>FR-01</td><td>사용자로서, 카드를 연동하면 과거 거래가 자동으로 수집되길 원한다</td><td>연동 후 최근 12개월 거래 적재 완료, 실패 건 재시도 3회</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>FR-02</td><td>시스템으로서, 사용자별 소비 프로파일을 매일 갱신해야 한다</td><td>일 1회 배치 성공, 신규 거래 30건 이상 시 즉시 증분 갱신</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>FR-03</td><td>시스템으로서, 신규 거래마다 리스크 스코어를 산출해야 한다</td><td>0~100 정수, 3초 내, 근거 3개 이상 반환</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>FR-04</td><td>사용자로서, 이상 판정 시 즉시 푸시 알림을 받고 싶다</td><td>판정 후 5초 내 발송, 금액·가맹점·근거 포함</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>FR-05</td><td>사용자로서, 알림에서 바로 “내가 했어요/아니에요”를 선택하고 싶다</td><td>알림 딥링크 → 2탭 내 처리 완료</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>FR-06</td><td>시스템으로서, 최고위험 거래에 대해 카드 사용을 정지해야 한다</td><td>R4 판정 시 자동 정지 + 사용자 통지 + 감사로그</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>FR-07</td><td>사용자로서, 정지된 카드를 본인확인 후 직접 해제하고 싶다</td><td>2FA 통과 시 60초 내 해제 반영</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>FR-08</td><td>사용자로서, 내 소비 패턴 분석 결과를 보고 싶다</td><td>카테고리별 평소 범위·최근 추이 시각화</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>FR-09</td><td>사용자로서, 민감도를 조절하고 특정 가맹점을 예외 등록하고 싶다</td><td>3단계 프리셋 + 가맹점 화이트리스트</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>FR-10</td><td>운영자로서, 룰별 발동 수와 오탐률을 보고 싶다</td><td>룰 단위 Precision·발동수 일별 집계</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>FR-11</td><td>사용자로서, 여행 등 예정된 소비 변화를 미리 알리고 싶다</td><td>기간·카테고리 지정 시 해당 룰 완화</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td>FR-12</td><td>시스템으로서, 가족·지인 명의 카드 동시 모니터링을 지원한다</td><td>다중 카드 프로파일 분리 관리</td><td><span class="chip c-p2">P2</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s2-3" class="anchor-pad">2.3 대표 시나리오 워크스루 — “30만 원 PC 부품”</h3>
+
+<p>원안에서 제시한 핵심 시나리오를 시스템이 실제로 어떻게 처리하는지 끝까지 따라간다. 이 흐름이 6·7장 설계의 검증 케이스이자 13장의 <code>AC-CORE-01</code> 테스트 픽스처가 된다.</p>
+
+<div class="diagram">
+<pre>
+ [t=0.0s]  카드 승인 발생
+           ┌──────────────────────────────────────────────────────┐
+           │ tx_id      : TX-2026-0808-193044-8821                │
+           │ user_id    : U-1042                                  │
+           │ amount     : 312,000 KRW                             │
+           │ merchant   : "컴퓨존 온라인"  (MCC 5732 전자제품)      │
+           │ channel    : ONLINE / 신규 가맹점                     │
+           │ ts         : 2026-08-08 19:30:44 (금)                 │
+           └──────────────────────────────────────────────────────┘
+                                  │
+ [t=0.1s]  ▼ 정규화 & 특수거래 판별
+           · 카테고리 = ELECTRONICS  · routine_flag = false
+           · 원거래/취소 아님, 할부 아님
+                                  │
+ [t=0.3s]  ▼ 프로파일 조회 (U-1042)
+           ┌──────────────────────────────────────────────────────┐
+           │ 전체      median 18,400 / p95 68,000 / p99 145,000    │
+           │ ELECTRONICS  거래 4건 / median 42,000 / max 89,000    │
+           │ 신규가맹점 비율 12% / 심야거래 비율 3%                 │
+           │ 최근 30일 합계 612,000 (평소 월평균 640,000)          │
+           └──────────────────────────────────────────────────────┘
+                                  │
+ [t=0.6s]  ▼ L1 룰 엔진
+           R-02 개인 p99 초과      → HIT  (312,000 &gt; 145,000)
+           R-05 신규 가맹점 고액   → HIT  (미거래 가맹점 &amp; ≥200,000)
+           R-11 카테고리 최대 초과 → HIT  (312,000 &gt; 89,000 × 2)
+           R-07 해외거래           → miss
+           R-03 벨로시티(1h 3건↑)  → miss
+                                  │
+ [t=0.9s]  ▼ L2 통계 스코어
+           log-amount robust z = (ln312000 − ln18400)/1.05 = 2.69
+           카테고리 조건부 분위수 = 0.998
+           시간대 이례도 = 0.31 (금요일 저녁, 흔한 시간)
+           → L2 = 78
+                                  │
+ [t=1.4s]  ▼ L3 ML 스코어
+           IsolationForest anomaly = 0.71 → 정규화 68
+           주요 기여 피처: amt_ratio_to_p95(0.34), merchant_novelty(0.22),
+                          cat_amt_zscore(0.18)
+                                  │
+ [t=1.5s]  ▼ 융합 스코어
+           S = 0.35·L1(85) + 0.35·L2(78) + 0.30·L3(68) = 77.5 → 78
+           보정: 최근 30일 지출 정상 범위 → −3   ⇒ 최종 75
+                                  │
+ [t=1.6s]  ▼ 등급 판정
+           75 → R3 (고위험) : 알림 + 추가인증 요구, 자동정지는 하지 않음
+                                  │
+ [t=2.1s]  ▼ 액션 실행
+           · 푸시 발송  · 인증 대기 15분 타이머  · 감사로그 기록
+                                  │
+ [t=?]     ▼ 사용자 응답 분기
+           (A) "내가 했어요" → 즉시 해제, 가맹점 학습 큐 등록,
+                              동일 가맹점 재알림 억제 90일
+           (B) "아니에요"   → 카드 즉시 정지(R4 승격), 카드사 통보,
+                              동일 패턴 룰 가중치 상향
+           (C) 15분 무응답  → R3 유지, 재알림 1회(SMS), 정지는 하지 않음
+</pre>
+</div>
+<p class="cap">그림 2-1. 대표 시나리오 종단 처리 흐름 (t는 거래 수신 이후 경과 시간)</p>
+
+<div class="box ok">
+  <div class="t">설계 판단 — 왜 R3에서 자동 정지를 하지 않는가</div>
+  <p>원안은 “이상 추정 → 알림, 카드 정지”를 한 묶음으로 봤다. 그러나 이 시나리오는 <em>사용자 본인이 실제로 PC 부품을 산 경우</em>가 훨씬 흔하다. 정지를 즉시 실행하면 결제가 끊기고, 사용자는 매장에서 당황한다. 따라서 <strong>정지는 R4에서만 자동</strong>으로 하고, R3는 “알림 + 사용자가 아니라고 답하면 즉시 정지”로 분리한다. R4의 조건은 7.1에 정의한다.</p>
+</div>
+<h2 id="s3" class="anchor-pad"><span class="num">03</span>시스템 아키텍처</h2>
+
+<h3 id="s3-1" class="anchor-pad">3.1 전체 구성도</h3>
+
+<div class="diagram">
+<pre>
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            EXTERNAL / SOURCE                                │
+│   카드사 API (or 시뮬레이터)   ·   마이데이터 표준 API   ·   CSV 업로드      │
+└───────────────────┬─────────────────────────────────────────────────────────┘
+                    │  raw transaction JSON
+┌───────────────────▼─────────────────────────────────────────────────────────┐
+│  ① INGESTION LAYER                                                          │
+│     collector  →  validator  →  normalizer  →  dedup(idempotency key)       │
+│     · 스키마 검증(Pydantic)  · 통화/시각 정규화  · 가맹점명 정제             │
+└───────────────────┬─────────────────────────────────────────────────────────┘
+                    │
+        ┌───────────┴────────────┐
+        │                        │
+┌───────▼──────────┐   ┌─────────▼─────────────────────────────────────────────┐
+│ ② STORAGE        │   │ ③ SCORING PATH  (실시간, 동기)                        │
+│  PostgreSQL      │   │   feature builder                                     │
+│   · transactions │◀──│      ↓  (프로파일 + 실시간 집계 조회)                  │
+│   · merchants    │   │   ┌────────────┬────────────┬────────────┐            │
+│   · profiles     │──▶│   │ L1 Rules   │ L2 Stats   │ L3 ML      │            │
+│   · alerts       │   │   └─────┬──────┴─────┬──────┴─────┬──────┘            │
+│  Redis (cache)   │◀──│         └────────────┼────────────┘                   │
+│   · 실시간 카운터 │   │              score fusion → 0~100                     │
+│   · 프로파일 캐시 │   │                      ↓                                │
+└───────┬──────────┘   │              risk grade R0~R4                          │
+        │              └─────────────────────┬─────────────────────────────────┘
+        │                                    │
+┌───────▼───────────────────────┐   ┌────────▼────────────────────────────────┐
+│ ④ PROFILING PATH (배치, 비동기)│   │ ⑤ ACTION LAYER                          │
+│   nightly job (02:00 KST)      │   │   policy engine → action plan            │
+│    · 90일 윈도우 재집계        │   │    ├ notify   (FCM / SMS)                │
+│    · 분위수·MAD·EWMA 산출      │   │    ├ stepup   (2FA 요청)                 │
+│    · 카테고리별 분포 갱신      │   │    ├ freeze   (카드사 정지 API)          │
+│    · ML 피처 스냅샷 저장       │   │    └ audit    (감사 로그 append-only)    │
+│   incremental job (30건마다)   │   └────────┬────────────────────────────────┘
+└────────────────────────────────┘            │
+                                     ┌────────▼────────────────────────────────┐
+                                     │ ⑥ FEEDBACK LOOP                          │
+                                     │   사용자 응답 → labels 테이블            │
+                                     │   → 룰 가중치 조정 / 재학습 데이터        │
+                                     └─────────────────────────────────────────┘
+                                     ┌─────────────────────────────────────────┐
+                                     │ ⑦ OPS: 대시보드 · 메트릭 · 드리프트 감시  │
+                                     └─────────────────────────────────────────┘
+</pre>
+</div>
+<p class="cap">그림 3-1. SpendGuard 전체 아키텍처. ④가 원안의 “축적→분석→평소범위 설정”, ③이 “이상 발현→비교→이상 추정”에 해당한다.</p>
+
+<h3 id="s3-2" class="anchor-pad">3.2 컴포넌트 명세</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>#</th><th>컴포넌트</th><th>책임</th><th>입력 → 출력</th><th>실패 시 동작</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><code>ingestion</code></td><td>수집·검증·정규화·중복 제거</td><td>raw JSON → <code>transactions</code> row</td><td>DLQ 테이블 적재 후 알림, 재시도 3회(지수 백오프)</td></tr>
+<tr><td>②</td><td><code>storage</code></td><td>영속 저장 + 핫 데이터 캐시</td><td>—</td><td>Redis 장애 시 DB 직접 조회로 폴백(지연 허용)</td></tr>
+<tr><td>③</td><td><code>scoring</code></td><td>피처 생성 + 3계층 스코어링 + 융합</td><td>tx → score, reasons[]</td><td>L3 타임아웃(300ms) 시 L1+L2만으로 판정, 플래그 기록</td></tr>
+<tr><td>④</td><td><code>profiler</code></td><td>프로파일 산출·갱신</td><td>90일 거래 → <code>user_profiles</code></td><td>실패 시 직전 프로파일 유지 + 만료 경보(48h 초과 시 P1)</td></tr>
+<tr><td>⑤</td><td><code>action</code></td><td>등급 → 액션 매핑·실행</td><td>grade → notification/freeze</td><td>freeze 실패 시 3회 재시도 후 수동 처리 큐 + 사용자 SMS</td></tr>
+<tr><td>⑥</td><td><code>feedback</code></td><td>사용자 응답 수집·라벨 적재</td><td>user response → <code>labels</code></td><td>비동기 큐, 유실 시 알림 이력에서 재구성 가능</td></tr>
+<tr><td>⑦</td><td><code>ops</code></td><td>지표 집계·드리프트 감시·룰 관리</td><td>—</td><td>독립 서비스, 장애가 탐지 경로에 전파되지 않음</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box info">
+  <div class="t">아키텍처 원칙 3가지</div>
+  <p><strong>① 판정 경로는 절대 막히면 안 된다.</strong> L3(ML)는 선택적 구성요소로 두고, 타임아웃 시 L1+L2만으로 판정한다. ML 서버가 죽어도 시스템은 계속 동작한다.<br>
+  <strong>② 프로파일 갱신과 스코어링은 완전히 분리한다.</strong> 배치가 실패해도 어제 프로파일로 오늘 판정이 가능하다.<br>
+  <strong>③ 모든 판정은 재현 가능해야 한다.</strong> 스코어링 시점의 프로파일 버전·룰 버전·모델 버전을 판정 결과에 함께 기록한다(4.3 <code>risk_assessments</code>).</p>
+</div>
+
+<h3 id="s3-3" class="anchor-pad">3.3 이중 경로 데이터 플로우</h3>
+
+<h4>A. Profiling Path — “평소”를 만드는 경로 (비동기/배치)</h4>
+<ol>
+<li><strong>윈도우 선택</strong> — 최근 90일. 90일 미만이면 보유 전체를 쓰되 콜드스타트 플래그를 세운다(5.4).</li>
+<li><strong>전처리</strong> — 취소된 거래 제외, 할부는 원금액 기준 1건으로 통합, <code>routine_flag=true</code> 거래는 별도 집합으로 분리.</li>
+<li><strong>집계</strong> — 전체·카테고리별·시간대별 3층에 대해 <code>n, median, MAD, p75, p90, p95, p99, max, 로그평균, 로그표준편차</code> 산출.</li>
+<li><strong>행동 프로파일</strong> — 신규 가맹점 비율, 심야(00~06시) 거래 비율, 온라인 비율, 시간대 히스토그램(24bin), 요일 히스토그램(7bin), 주간 거래 건수 EWMA.</li>
+<li><strong>저장</strong> — <code>user_profiles</code>에 새 버전으로 <em>append</em>. 덮어쓰지 않는다(과거 판정 재현용).</li>
+<li><strong>캐시 워밍</strong> — 활성 사용자 프로파일을 Redis에 <code>profile:{user_id}</code>로 적재, TTL 26시간.</li>
+</ol>
+
+<h4>B. Scoring Path — “이상”을 잡는 경로 (동기/실시간)</h4>
+<ol>
+<li><strong>수신·정규화</strong> — 멱등키 <code>(card_id, approval_no, approved_at)</code>로 중복 차단.</li>
+<li><strong>실시간 피처</strong> — Redis 슬라이딩 윈도우에서 1시간/24시간 거래 건수·합계를 O(1)로 조회.</li>
+<li><strong>프로파일 로드</strong> — 캐시 히트 시 &lt;1ms, 미스 시 DB 조회 후 캐시 채움.</li>
+<li><strong>3계층 병렬 실행</strong> — L1/L2는 인프로세스(합계 &lt;10ms), L3는 별도 프로세스 호출(예산 300ms).</li>
+<li><strong>융합·등급</strong> — 6.5 공식 적용.</li>
+<li><strong>액션·기록</strong> — 액션 실행은 비동기 큐에 넣고 판정 응답은 즉시 반환한다.</li>
+</ol>
+
+<h3 id="s3-4" class="anchor-pad">3.4 기술 스택과 선정 근거</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>영역</th><th>선택</th><th>근거</th><th>실무 확장 시</th></tr></thead>
+<tbody>
+<tr><td>언어</td><td>Python 3.12</td><td>데이터·ML 생태계 일원화. 단일 언어로 수집~모델까지 커버</td><td>승인 경로만 Go/Java로 분리</td></tr>
+<tr><td>API 서버</td><td>FastAPI + Uvicorn</td><td>Pydantic 스키마 검증이 ingestion 요구사항과 정확히 맞음. OpenAPI 자동 생성</td><td>동일 유지</td></tr>
+<tr><td>주 저장소</td><td>PostgreSQL 16</td><td>분위수·윈도우 함수·JSONB·파티셔닝을 한 번에 제공. 통계 계산 대부분을 DB에서 처리 가능</td><td>읽기 복제본 + Citus 샤딩</td></tr>
+<tr><td>캐시·카운터</td><td>Redis 7</td><td>벨로시티 룰에 필요한 슬라이딩 윈도우 카운터를 <code>ZSET</code>으로 O(log n)에 구현</td><td>Redis Cluster</td></tr>
+<tr><td>스트리밍</td><td><strong>미사용</strong> (HTTP + 내부 큐)</td><td>일 거래량 수천 건 규모에서 Kafka는 운영 부담만 큼. 인터페이스만 이벤트 지향으로 설계해 교체 가능하게 둠</td><td>Kafka + Flink로 교체</td></tr>
+<tr><td>배치 스케줄</td><td>APScheduler (또는 cron)</td><td>일 1회 + 증분 트리거 수준이라 Airflow 불필요</td><td>Airflow / Dagster</td></tr>
+<tr><td>ML</td><td>scikit-learn (IsolationForest), LightGBM</td><td>라벨이 거의 없어 비지도 우선. LightGBM은 라벨 축적 후 2단계</td><td>동일 + 모델 서빙 분리</td></tr>
+<tr><td>설명가능성</td><td>SHAP (TreeExplainer)</td><td>L3 기여도 추출. L1·L2는 본질적으로 설명 가능</td><td>동일</td></tr>
+<tr><td>대시보드</td><td>Streamlit 또는 Next.js</td><td>발표·데모 목적이면 Streamlit이 압도적으로 빠름</td><td>Next.js + 사내 SSO</td></tr>
+<tr><td>모니터링</td><td>Prometheus + Grafana</td><td>SLI/SLO를 표준 방식으로 계측</td><td>동일</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="t">기술 선택에서 흔히 하는 실수</div>
+  <p>“실시간 이상탐지”라는 말 때문에 Kafka·Spark·Flink를 먼저 도입하는 경우가 많다. 하지만 이 시스템의 실시간 요구는 <strong>“거래 1건당 3초 이내”</strong>이지 <em>“초당 10만 건 처리”</em>가 아니다. 단건 저지연과 대용량 처리량은 전혀 다른 문제이며, 전자는 PostgreSQL + Redis로 충분히 달성된다. 인터페이스를 이벤트 기반으로 설계해 두면 필요할 때 갈아끼울 수 있다.</p>
+</div>
+
+<h2 id="s4" class="anchor-pad"><span class="num">04</span>데이터 설계</h2>
+
+<h3 id="s4-1" class="anchor-pad">4.1 데이터 소스와 수집 항목</h3>
+
+<p>수집 항목은 <strong>개인정보 최소 수집 원칙</strong>에 따라 “탐지에 실제로 쓰이는 필드”만 정의한다. 각 필드마다 <em>왜 필요한지</em>를 명시하는 것이 11장 규제 검토의 근거가 된다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>필드</th><th>타입</th><th>필수</th><th>수집 목적</th><th>민감도</th></tr></thead>
+<tbody>
+<tr><td><code>approval_no</code></td><td>string</td><td>Y</td><td>멱등성 키, 취소 거래 매칭</td><td>중</td></tr>
+<tr><td><code>card_ref</code></td><td>string</td><td>Y</td><td>카드 식별 (원번호가 아닌 <strong>토큰</strong>)</td><td>고</td></tr>
+<tr><td><code>amount</code></td><td>decimal</td><td>Y</td><td>모든 금액 통계의 기반</td><td>중</td></tr>
+<tr><td><code>approved_at</code></td><td>timestamptz</td><td>Y</td><td>시간대·요일·벨로시티 피처</td><td>중</td></tr>
+<tr><td><code>merchant_name</code></td><td>string</td><td>Y</td><td>가맹점 신규성·반복성 판정</td><td>고</td></tr>
+<tr><td><code>mcc</code></td><td>char(4)</td><td>Y</td><td>카테고리 매핑 → 조건부 분포</td><td>중</td></tr>
+<tr><td><code>channel</code></td><td>enum</td><td>Y</td><td>ONLINE/OFFLINE/OVERSEAS 구분</td><td>저</td></tr>
+<tr><td><code>installment_months</code></td><td>int</td><td>N</td><td>할부 정규화</td><td>저</td></tr>
+<tr><td><code>tx_type</code></td><td>enum</td><td>Y</td><td>APPROVAL/CANCEL/PARTIAL_CANCEL</td><td>저</td></tr>
+<tr><td><code>merchant_region</code></td><td>string</td><td>N</td><td>지역 이례도 (시·군·구 수준까지만)</td><td>고</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box danger">
+  <div class="t">수집하지 않는 것 — 명시적 배제</div>
+  <p>카드 원번호(PAN), CVC, 유효기간, 정확한 GPS 좌표, 구매 품목 상세, 주민등록번호는 <strong>수집하지 않는다</strong>. 카드는 반드시 발급사가 제공한 토큰 또는 자체 해시(<code>SHA-256(PAN + per-user salt)</code>)로만 참조한다. 지역은 시·군·구 단위로 절삭한다. 이 결정은 11.2의 데이터 최소화 원칙과 직결되며, 포트폴리오 문서에서도 심사자가 가장 먼저 확인하는 지점이다.</p>
+</div>
+
+<h4>수집 방식 3가지</h4>
+<ol>
+<li><strong>시뮬레이터(기본)</strong> — 부록 A의 생성기로 사용자 200명 × 12개월 합성 거래 약 25만 건 생성. 이상 시나리오를 라벨과 함께 주입하므로 성능 측정이 가능하다.</li>
+<li><strong>마이데이터 표준 API 형식 모사</strong> — 카드 업권 “승인내역 조회” 응답 스키마를 참고해 필드명을 맞춰 두면, 실제 연동 시 어댑터 교체만으로 동작한다.</li>
+<li><strong>CSV 업로드</strong> — 사용자가 카드사 홈페이지에서 내려받은 이용내역을 직접 업로드. 데모에 유용하다.</li>
+</ol>
+
+<h3 id="s4-2" class="anchor-pad">4.2 ERD</h3>
+
+<div class="diagram">
+<pre>
+   ┌──────────────┐          ┌──────────────────┐          ┌─────────────────┐
+   │    users     │1        *│      cards       │1        *│  transactions   │
+   ├──────────────┤──────────├──────────────────┤──────────├─────────────────┤
+   │ user_id  PK  │          │ card_id      PK  │          │ tx_id       PK  │
+   │ created_at   │          │ user_id      FK  │          │ card_id     FK  │
+   │ sensitivity  │          │ card_ref(token)  │          │ user_id     FK  │
+   │ status       │          │ issuer           │          │ merchant_id FK  │
+   └──────┬───────┘          │ status           │          │ amount          │
+          │                  │ frozen_at        │          │ approved_at     │
+          │                  └──────────────────┘          │ mcc / channel   │
+          │                                                │ tx_type         │
+          │1                                               │ routine_flag    │
+          │                                                └────────┬────────┘
+          │*                                                        │1
+   ┌──────▼─────────────┐    ┌────────────────────┐                 │
+   │  user_profiles     │    │     merchants      │*────────────────┘
+   ├────────────────────┤    ├────────────────────┤
+   │ profile_id     PK  │    │ merchant_id    PK  │
+   │ user_id        FK  │    │ name_normalized    │        ┌──────────────────┐
+   │ version            │    │ mcc                │        │ risk_assessments │
+   │ window_start/end   │    │ category           │        ├──────────────────┤
+   │ stats      JSONB   │    │ is_special         │        │ assessment_id PK │
+   │ cat_stats  JSONB   │    │ variance_class     │        │ tx_id         FK │
+   │ time_stats JSONB   │    └────────────────────┘        │ score            │
+   │ is_cold_start      │                                  │ grade            │
+   │ created_at         │                                  │ l1/l2/l3_score   │
+   └────────────────────┘                                  │ reasons   JSONB  │
+                                                           │ profile_version  │
+   ┌────────────────────┐    ┌────────────────────┐        │ rule_version     │
+   │      alerts        │    │      labels        │        │ model_version    │
+   ├────────────────────┤    ├────────────────────┤        └────────┬─────────┘
+   │ alert_id       PK  │*  1│ label_id       PK  │                 │1
+   │ assessment_id  FK  │◀───│ tx_id          FK  │◀────────────────┘
+   │ channel            │    │ user_response      │
+   │ sent_at            │    │ labeled_at         │        ┌──────────────────┐
+   │ responded_at       │    │ source             │        │   audit_logs     │
+   │ response           │    └────────────────────┘        ├──────────────────┤
+   └────────────────────┘                                  │ log_id        PK │
+                                                           │ actor / action   │
+   ┌────────────────────┐    ┌────────────────────┐        │ target / payload │
+   │   rule_configs     │    │  card_actions      │        │ created_at       │
+   ├────────────────────┤    ├────────────────────┤        └──────────────────┘
+   │ rule_id        PK  │    │ action_id      PK  │
+   │ version            │    │ card_id        FK  │
+   │ enabled / weight   │    │ action_type        │
+   │ params     JSONB   │    │ triggered_by       │
+   └────────────────────┘    │ status / reason    │
+                             └────────────────────┘
+</pre>
+</div>
+<p class="cap">그림 4-1. 논리 ERD. <code>risk_assessments</code>가 판정의 단일 진실 원천이며, 프로파일·룰·모델 버전을 함께 보관해 재현성을 보장한다.</p>
+
+<h3 id="s4-3" class="anchor-pad">4.3 테이블 DDL</h3>
+
+<pre><code>-- ─────────────────────────────────────────────────────────────
+-- 4.3.1 거래 원장 : 월 단위 레인지 파티셔닝
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE transactions (
+    tx_id               BIGSERIAL,
+    user_id             UUID        NOT NULL,
+    card_id             UUID        NOT NULL,
+    merchant_id         BIGINT      REFERENCES merchants(merchant_id),
+    approval_no         VARCHAR(32) NOT NULL,
+    amount              NUMERIC(14,2) NOT NULL CHECK (amount &gt; 0),
+    currency            CHAR(3)     NOT NULL DEFAULT 'KRW',
+    approved_at         TIMESTAMPTZ NOT NULL,
+    mcc                 CHAR(4),
+    category            VARCHAR(32) NOT NULL,      -- 내부 택소노미(4.5)
+    channel             VARCHAR(12) NOT NULL       -- ONLINE|OFFLINE|OVERSEAS
+                        CHECK (channel IN ('ONLINE','OFFLINE','OVERSEAS')),
+    tx_type             VARCHAR(16) NOT NULL DEFAULT 'APPROVAL'
+                        CHECK (tx_type IN ('APPROVAL','CANCEL','PARTIAL_CANCEL')),
+    original_tx_id      BIGINT,                    -- 취소 시 원거래
+    installment_months  SMALLINT    NOT NULL DEFAULT 0,
+    merchant_region     VARCHAR(40),               -- 시군구까지만
+    routine_flag        BOOLEAN     NOT NULL DEFAULT FALSE,
+    is_excluded         BOOLEAN     NOT NULL DEFAULT FALSE,  -- 프로파일 학습 제외
+    ingested_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (tx_id, approved_at)
+) PARTITION BY RANGE (approved_at);
+
+CREATE TABLE transactions_2026_08 PARTITION OF transactions
+    FOR VALUES FROM ('2026-08-01') TO ('2026-09-01');
+-- 이후 월별 파티션은 배치로 자동 생성 (pg_partman 또는 자체 스크립트)
+
+-- 멱등성 : 동일 승인번호 중복 적재 차단
+CREATE UNIQUE INDEX ux_tx_idem
+    ON transactions (card_id, approval_no, approved_at);
+
+-- 프로파일 집계용 커버링 인덱스
+CREATE INDEX ix_tx_user_time
+    ON transactions (user_id, approved_at DESC)
+    INCLUDE (amount, category, merchant_id)
+    WHERE tx_type = 'APPROVAL' AND is_excluded = FALSE;
+
+CREATE INDEX ix_tx_user_cat_time
+    ON transactions (user_id, category, approved_at DESC);
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 4.3.2 가맹점 마스터
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE merchants (
+    merchant_id      BIGSERIAL PRIMARY KEY,
+    name_raw         TEXT        NOT NULL,
+    name_normalized  TEXT        NOT NULL,   -- 소문자·공백·지점명 제거
+    mcc              CHAR(4),
+    category         VARCHAR(32) NOT NULL,
+    is_special       BOOLEAN     NOT NULL DEFAULT FALSE,  -- 4.5 특수 가맹점
+    variance_class   VARCHAR(8)  NOT NULL DEFAULT 'MID'   -- LOW|MID|HIGH
+                     CHECK (variance_class IN ('LOW','MID','HIGH')),
+    first_seen_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (name_normalized, mcc)
+);
+CREATE INDEX ix_merchant_name_trgm
+    ON merchants USING gin (name_normalized gin_trgm_ops);  -- 유사 가맹점 매칭
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 4.3.3 사용자 소비 프로파일 : 버전 누적(append-only)
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE user_profiles (
+    profile_id     BIGSERIAL PRIMARY KEY,
+    user_id        UUID        NOT NULL,
+    version        INT         NOT NULL,
+    window_start   DATE        NOT NULL,
+    window_end     DATE        NOT NULL,
+    tx_count       INT         NOT NULL,
+    is_cold_start  BOOLEAN     NOT NULL DEFAULT FALSE,
+    stats          JSONB       NOT NULL,   -- 전체 금액 통계
+    cat_stats      JSONB       NOT NULL,   -- 카테고리별 통계
+    time_stats     JSONB       NOT NULL,   -- 시간대/요일 히스토그램
+    behavior       JSONB       NOT NULL,   -- 신규가맹점비율 등 행동 지표
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, version)
+);
+CREATE INDEX ix_profile_latest ON user_profiles (user_id, version DESC);
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 4.3.4 판정 결과 : 재현성을 위해 모든 버전 정보 동봉
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE risk_assessments (
+    assessment_id    BIGSERIAL PRIMARY KEY,
+    tx_id            BIGINT      NOT NULL,
+    user_id          UUID        NOT NULL,
+    score            SMALLINT    NOT NULL CHECK (score BETWEEN 0 AND 100),
+    grade            VARCHAR(2)  NOT NULL CHECK (grade IN ('R0','R1','R2','R3','R4')),
+    l1_score         SMALLINT,
+    l2_score         SMALLINT,
+    l3_score         SMALLINT,
+    l3_status        VARCHAR(12) NOT NULL DEFAULT 'OK',  -- OK|TIMEOUT|SKIPPED
+    reasons          JSONB       NOT NULL,   -- [{code, label, contribution}]
+    features         JSONB       NOT NULL,   -- 판정 시점 피처 스냅샷
+    profile_version  INT         NOT NULL,
+    rule_version     VARCHAR(16) NOT NULL,
+    model_version    VARCHAR(32),
+    latency_ms       INT,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_ra_user_time ON risk_assessments (user_id, created_at DESC);
+CREATE INDEX ix_ra_grade     ON risk_assessments (grade, created_at DESC);
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 4.3.5 알림 / 라벨 / 카드 조치 / 감사로그
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE alerts (
+    alert_id       BIGSERIAL PRIMARY KEY,
+    assessment_id  BIGINT      NOT NULL REFERENCES risk_assessments(assessment_id),
+    user_id        UUID        NOT NULL,
+    channel        VARCHAR(12) NOT NULL,   -- PUSH|SMS|EMAIL|IN_APP
+    body           TEXT        NOT NULL,
+    sent_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    delivered_at   TIMESTAMPTZ,
+    responded_at   TIMESTAMPTZ,
+    response       VARCHAR(16),            -- CONFIRMED_MINE|NOT_MINE|IGNORED
+    expires_at     TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX ix_alert_pending ON alerts (user_id, sent_at DESC)
+    WHERE responded_at IS NULL;
+
+CREATE TABLE labels (
+    label_id     BIGSERIAL PRIMARY KEY,
+    tx_id        BIGINT      NOT NULL,
+    user_id      UUID        NOT NULL,
+    is_anomaly   BOOLEAN     NOT NULL,
+    source       VARCHAR(16) NOT NULL,   -- USER|OPERATOR|SIMULATION
+    confidence   NUMERIC(3,2) NOT NULL DEFAULT 1.00,
+    labeled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (tx_id, source)
+);
+
+CREATE TABLE card_actions (
+    action_id     BIGSERIAL PRIMARY KEY,
+    card_id       UUID        NOT NULL,
+    action_type   VARCHAR(16) NOT NULL,   -- FREEZE|UNFREEZE|LIMIT_DOWN
+    triggered_by  VARCHAR(16) NOT NULL,   -- SYSTEM|USER|OPERATOR
+    assessment_id BIGINT,
+    status        VARCHAR(12) NOT NULL,   -- PENDING|SUCCESS|FAILED
+    reason        TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at  TIMESTAMPTZ
+);
+
+CREATE TABLE audit_logs (
+    log_id      BIGSERIAL PRIMARY KEY,
+    actor       VARCHAR(64) NOT NULL,
+    action      VARCHAR(48) NOT NULL,
+    target_type VARCHAR(32) NOT NULL,
+    target_id   TEXT        NOT NULL,
+    payload     JSONB,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- 감사로그는 UPDATE/DELETE 금지 : 애플리케이션 롤에 INSERT/SELECT만 부여
+REVOKE UPDATE, DELETE ON audit_logs FROM app_role;
+</code></pre>
+
+<h4>프로파일 JSONB 스키마</h4>
+<pre><code>// user_profiles.stats
+{
+  "n": 412, "sum": 1_920_400,
+  "median": 18_400, "mad": 9_100,
+  "p75": 32_000, "p90": 54_000, "p95": 68_000, "p99": 145_000,
+  "max": 289_000,
+  "log_mean": 9.82, "log_std": 1.05,        // ln(amount) 기준
+  "monthly_sum_ewma": 640_000,
+  "monthly_sum_std": 82_000
+}
+
+// user_profiles.cat_stats  (카테고리별, n&lt;5면 fallback 표시)
+{
+  "ELECTRONICS": { "n": 4,  "median": 42_000, "p95": 85_000, "max": 89_000,
+                   "share": 0.03, "fallback": true },
+  "FOOD":        { "n": 148,"median": 12_000, "p95": 38_000, "max": 62_000,
+                   "share": 0.29, "fallback": false },
+  "BEAUTY":      { "n": 22, "median": 34_000, "p95": 121_000,"max": 158_000,
+                   "share": 0.11, "fallback": false, "special": true }
+}
+
+// user_profiles.time_stats
+{
+  "hour_hist": [0.002,0.001,0.0,...],       // 24개, 합=1
+  "dow_hist":  [0.11,0.13,0.14,0.15,0.21,0.16,0.10],
+  "night_ratio": 0.03,                       // 00~06시 비율
+  "weekend_ratio": 0.26
+}
+
+// user_profiles.behavior
+{
+  "new_merchant_ratio": 0.12,
+  "online_ratio": 0.38,
+  "distinct_merchants": 96,
+  "top_merchants": ["gs25", "starbucks", "baemin"],
+  "weekly_tx_count_ewma": 32.4,
+  "installment_ratio": 0.04
+}
+</code></pre>
+
+<h3 id="s4-4" class="anchor-pad">4.4 인덱스·파티셔닝 전략</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>패턴</th><th>쿼리 형태</th><th>전략</th><th>기대 성능</th></tr></thead>
+<tbody>
+<tr><td>프로파일 배치</td><td>사용자별 90일 전체 스캔</td><td><code>ix_tx_user_time</code> 커버링 인덱스 + 파티션 프루닝</td><td>사용자당 &lt; 20ms</td></tr>
+<tr><td>실시간 판정</td><td>프로파일 1건 조회</td><td>Redis 캐시 우선, TTL 26h</td><td>&lt; 1ms (hit)</td></tr>
+<tr><td>벨로시티</td><td>최근 1h/24h 건수·합계</td><td>Redis <code>ZSET</code> + <code>ZREMRANGEBYSCORE</code>로 만료 제거</td><td>&lt; 2ms</td></tr>
+<tr><td>가맹점 신규성</td><td>해당 사용자·가맹점 첫 거래 여부</td><td>Redis Set <code>seen:{user_id}</code> (HyperLogLog 아님, 정확도 필요)</td><td>&lt; 1ms</td></tr>
+<tr><td>이력 조회</td><td>사용자 판정 이력 페이징</td><td><code>ix_ra_user_time</code> + keyset pagination</td><td>&lt; 15ms</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>보관 정책</strong> — <code>transactions</code>는 최근 13개월만 핫 파티션에 두고, 그 이전은 압축 후 콜드 스토리지로 분리(<code>DETACH PARTITION</code>). <code>risk_assessments</code>는 5년, <code>audit_logs</code>는 5년 보관한다(11.2).</p>
+
+<h3 id="s4-5" class="anchor-pad">4.5 카테고리 택소노미와 특수 가맹점 처리</h3>
+
+<p>원안에서 언급한 <em>“단순 거래 제외, 특수(올리브영 등등)”</em> 부분이 실제로는 이 절 전체에 해당한다. 세 가지 서로 다른 개념을 구분해야 한다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>구분</th><th>정의</th><th>예시</th><th>처리 방식</th></tr></thead>
+<tbody>
+<tr><td><strong>Routine (단순 반복)</strong></td><td>주기적이고 금액 변동이 거의 없는 거래</td><td>통신요금, 교통카드 충전, 넷플릭스 구독, 관리비</td><td>프로파일 학습에는 포함(총지출 기준선), 스코어링 시 <strong>가중치 0.3배 감쇠</strong>. 단, 금액이 과거 평균의 3배를 넘으면 감쇠 해제</td></tr>
+<tr><td><strong>Special (고분산 가맹점)</strong></td><td>동일 가맹점에서 금액 분산이 매우 큰 업종</td><td>올리브영, 다이소, 이마트, 쿠팡, 백화점</td><td>가맹점 단위 조건부 분포를 <strong>별도로</strong> 학습. 전체 분포 대신 <code>P(amount | merchant)</code>로 판정</td></tr>
+<tr><td><strong>Rare (희소 카테고리)</strong></td><td>개인 이력이 5건 미만인 카테고리</td><td>전자제품, 의료, 가구</td><td>개인 통계 대신 <strong>동질 집단(peer group) 분포</strong>로 대체(5.4)</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>내부 카테고리 택소노미 (14종)</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>코드</th><th>이름</th><th>대표 MCC</th><th>분산등급</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td><code>FOOD</code></td><td>식비·외식</td><td>5812, 5814, 5499</td><td>LOW</td><td>고빈도 소액</td></tr>
+<tr><td><code>GROCERY</code></td><td>마트·식료품</td><td>5411, 5499</td><td>HIGH</td><td>특수 가맹점 다수</td></tr>
+<tr><td><code>CAFE</code></td><td>카페·베이커리</td><td>5814</td><td>LOW</td><td>—</td></tr>
+<tr><td><code>TRANSPORT</code></td><td>교통</td><td>4111, 4121</td><td>LOW</td><td>대부분 routine</td></tr>
+<tr><td><code>FUEL</code></td><td>주유</td><td>5541, 5542</td><td>MID</td><td>—</td></tr>
+<tr><td><code>BEAUTY</code></td><td>뷰티·헬스케어</td><td>5977, 7230</td><td>HIGH</td><td><strong>올리브영</strong> 계열</td></tr>
+<tr><td><code>FASHION</code></td><td>의류·잡화</td><td>5651, 5661</td><td>HIGH</td><td>—</td></tr>
+<tr><td><code>ELECTRONICS</code></td><td>전자·컴퓨터</td><td>5732, 5734, 5045</td><td>HIGH</td><td><strong>본 시나리오 대상</strong></td></tr>
+<tr><td><code>ECOMMERCE</code></td><td>종합 온라인몰</td><td>5964, 5999</td><td>HIGH</td><td>가맹점명 정제 중요</td></tr>
+<tr><td><code>MEDICAL</code></td><td>병원·약국</td><td>8062, 5912</td><td>MID</td><td>민감정보 주의</td></tr>
+<tr><td><code>ENTERTAIN</code></td><td>문화·여가</td><td>7832, 7999</td><td>MID</td><td>—</td></tr>
+<tr><td><code>SUBSCRIPTION</code></td><td>구독·통신</td><td>4899, 5968</td><td>LOW</td><td>대부분 routine</td></tr>
+<tr><td><code>TRAVEL</code></td><td>여행·숙박</td><td>3000-3999, 7011</td><td>HIGH</td><td>여행 모드 연동</td></tr>
+<tr><td><code>ETC</code></td><td>기타</td><td>—</td><td>MID</td><td>미매핑 MCC 흡수</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>특수 가맹점 판정 알고리즘</h4>
+<pre><code># 가맹점을 특수(high-variance)로 자동 분류
+# 전체 사용자 거래를 대상으로 주 1회 실행
+
+def classify_merchant_variance(merchant_txs):
+    """
+    변동계수(CV)와 사분위범위비(QCD)를 함께 본다.
+    CV만 쓰면 극단값 한 건에 흔들리므로 로버스트 지표를 병행.
+    """
+    amounts = merchant_txs.amount
+    if len(amounts) &lt; 30:
+        return "MID"                      # 표본 부족 → 중립
+
+    cv  = amounts.std() / amounts.mean()
+    q1, q3 = amounts.quantile([0.25, 0.75])
+    qcd = (q3 - q1) / (q3 + q1)           # 0~1, 로버스트
+
+    if cv &gt;= 1.0 or qcd &gt;= 0.45:
+        return "HIGH"    # 올리브영·다이소형 : 3천원도 30만원도 정상
+    if cv &lt;= 0.35 and qcd &lt;= 0.20:
+        return "LOW"     # 지하철·구독형 : 금액이 거의 고정
+    return "MID"
+
+
+# routine_flag 판정 : 주기성 + 금액 안정성
+def is_routine(user_merchant_txs):
+    if len(user_merchant_txs) &lt; 3:
+        return False
+    intervals = user_merchant_txs.approved_at.diff().dt.days.dropna()
+    period_stable = intervals.std() &lt;= 5 and 25 &lt;= intervals.median() &lt;= 35
+    amount_stable = (user_merchant_txs.amount.std()
+                     / user_merchant_txs.amount.mean()) &lt;= 0.15
+    return period_stable and amount_stable
+</code></pre>
+
+<div class="box info">
+  <div class="t">왜 “올리브영”이 까다로운가</div>
+  <p>같은 가맹점에서 3,000원(립밤)부터 300,000원(화장품 세트)까지 나온다. 전체 금액 분포로 보면 30만 원은 상위 0.2%지만, <strong>올리브영이라는 조건 하에서는</strong> 상위 8%일 수 있다. 그래서 <code>is_special=true</code> 가맹점은 전체 분포가 아니라 <code>P(amount | merchant, user)</code>를 쓰고, 개인 이력이 부족하면 <code>P(amount | merchant)</code>(전체 사용자 기준)로 폴백한다. 이 폴백 체인이 6.3의 3단 구조다.</p>
+</div>
+
+<h3 id="s4-6" class="anchor-pad">4.6 데이터 품질 규칙</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>규칙</th><th>위반 시 조치</th></tr></thead>
+<tbody>
+<tr><td>DQ-01</td><td><code>amount &gt; 0</code>, 소수점 이하 0 (KRW)</td><td>DLQ 적재, 판정 스킵</td></tr>
+<tr><td>DQ-02</td><td><code>approved_at</code>이 미래이거나 5년 이전이면 거부</td><td>DLQ 적재</td></tr>
+<tr><td>DQ-03</td><td>동일 <code>(card_id, approval_no)</code> 중복 시 최초 1건만 채택</td><td>무시 + 카운터 증가</td></tr>
+<tr><td>DQ-04</td><td>MCC 미상 시 <code>ETC</code>로 매핑하되 <code>mcc_unknown</code> 플래그</td><td>경고, 주간 리포트에 집계</td></tr>
+<tr><td>DQ-05</td><td>취소 거래는 원거래를 찾아 <code>is_excluded=true</code>로 마킹</td><td>원거래 미발견 시 30일 보류 큐</td></tr>
+<tr><td>DQ-06</td><td>일 수집 건수가 7일 이동평균의 50% 미만이면 수집 장애 의심</td><td>운영 알림 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>DQ-07</td><td>가맹점명 정제 후 빈 문자열이면 <code>UNKNOWN_MERCHANT</code></td><td>신규성 피처 계산에서 제외</td></tr>
+<tr><td>DQ-08</td><td>할부 거래는 총액 기준 1건으로만 적재(회차별 청구 미적재)</td><td>중복 시 DQ-03 적용</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>가맹점명 정규화 규칙</h4>
+<pre><code>def normalize_merchant(raw: str) -&gt; str:
+    s = raw.strip().lower()
+    s = re.sub(r'[（(].*?[）)]', '', s)          # 괄호 내용 제거
+    s = re.sub(r'(주식회사|㈜|주\)|\(주\))', '', s)
+    s = re.sub(r'\s*\d+호점|\s*\d+점$', '', s)   # "GS25 강남3호점" → "gs25"
+    s = re.sub(r'[^가-힣a-z0-9]', '', s)        # 특수문자·공백 제거
+    return s
+
+# 예시
+# "GS25 강남역점"        → "gs25"
+# "(주)올리브영 홍대점"   → "올리브영"
+# "COUPANG   PAY*주문"   → "coupangpay주문"  → 사전 매핑으로 "coupang"
+</code></pre>
+<p class="footnote">정규화만으로 부족한 경우(<code>COUPANG PAY*</code>, <code>NAVERPAY_</code> 등 PG 접두어)는 <strong>가맹점 별칭 사전</strong>을 두어 수동 매핑한다. 이 사전은 <code>merchant_aliases</code> 테이블로 관리하며 운영 대시보드에서 편집 가능하게 한다.</p>
+<h2 id="s5" class="anchor-pad"><span class="num">05</span>피처 엔지니어링</h2>
+
+<p>탐지 성능의 70%는 모델이 아니라 피처에서 나온다. 특히 개인 이상탐지에서는 <strong>“절대값 피처”가 아니라 “개인 프로파일 대비 상대값 피처”</strong>가 핵심이다. <code>amount=312000</code> 자체는 정보가 거의 없지만, <code>amount / user_p95 = 4.6</code>은 강한 신호다.</p>
+
+<h3 id="s5-1" class="anchor-pad">5.1 피처 카탈로그</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>#</th><th>피처명</th><th>정의</th><th>계산 위치</th><th>사용 계층</th></tr></thead>
+<tbody>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">A. 금액 상대성 — 가장 중요한 그룹</td></tr>
+<tr><td>F01</td><td><code>amt_over_median</code></td><td><code>amount / profile.median</code></td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F02</td><td><code>amt_over_p95</code></td><td><code>amount / profile.p95</code></td><td>실시간</td><td>L1, L2, L3</td></tr>
+<tr><td>F03</td><td><code>amt_over_p99</code></td><td><code>amount / profile.p99</code></td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td>F04</td><td><code>log_robust_z</code></td><td><code>(ln(amt) − ln(median)) / (1.4826 × MAD_log)</code></td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F05</td><td><code>amt_percentile</code></td><td>개인 금액 분포에서의 경험적 분위수 (0~1)</td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F06</td><td><code>cat_amt_over_p95</code></td><td>동일 카테고리 내 <code>amount / cat_p95</code></td><td>실시간</td><td>L1, L2, L3</td></tr>
+<tr><td>F07</td><td><code>cat_amt_over_max</code></td><td>동일 카테고리 <code>amount / cat_max</code> (역대 최고 대비)</td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td>F08</td><td><code>merchant_amt_z</code></td><td>특수 가맹점일 때 가맹점 조건부 z-score</td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">B. 가맹점 신규성·친숙도</td></tr>
+<tr><td>F09</td><td><code>merchant_novelty</code></td><td>0=단골(10회+), 0.5=경험있음, 1.0=완전 신규</td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td>F10</td><td><code>merchant_tx_count</code></td><td>해당 사용자의 이 가맹점 누적 거래 수</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F11</td><td><code>days_since_first_seen</code></td><td>이 가맹점 첫 거래 이후 경과일 (신규면 0)</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F12</td><td><code>cat_novelty</code></td><td>이 카테고리 거래 경험 정도 (0~1)</td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">C. 시간 이례도</td></tr>
+<tr><td>F13</td><td><code>hour_rarity</code></td><td><code>1 − hour_hist[h] / max(hour_hist)</code></td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F14</td><td><code>is_night</code></td><td>00~06시 여부 (bool)</td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td>F15</td><td><code>dow_rarity</code></td><td>요일 히스토그램 기반 희소성</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F16</td><td><code>secs_since_prev_tx</code></td><td>직전 거래와의 초 단위 간격</td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">D. 벨로시티 (단기 급증)</td></tr>
+<tr><td>F17</td><td><code>tx_count_1h</code></td><td>최근 1시간 거래 건수</td><td>Redis</td><td>L1, L3</td></tr>
+<tr><td>F18</td><td><code>tx_sum_1h</code></td><td>최근 1시간 거래 합계</td><td>Redis</td><td>L1, L3</td></tr>
+<tr><td>F19</td><td><code>tx_count_24h</code></td><td>최근 24시간 거래 건수</td><td>Redis</td><td>L1, L3</td></tr>
+<tr><td>F20</td><td><code>sum_24h_over_daily_avg</code></td><td><code>tx_sum_24h / (monthly_ewma / 30)</code></td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F21</td><td><code>distinct_merchants_1h</code></td><td>1시간 내 서로 다른 가맹점 수</td><td>Redis</td><td>L1, L3</td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">E. 채널·맥락</td></tr>
+<tr><td>F22</td><td><code>is_online</code></td><td>온라인 여부</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F23</td><td><code>online_rate_deviation</code></td><td><code>is_online − profile.online_ratio</code></td><td>실시간</td><td>L3</td></tr>
+<tr><td>F24</td><td><code>is_overseas</code></td><td>해외 거래 여부</td><td>실시간</td><td>L1, L3</td></tr>
+<tr><td>F25</td><td><code>region_novelty</code></td><td>과거 거래 지역 대비 신규 지역 여부</td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F26</td><td><code>is_installment</code></td><td>할부 여부 (할부는 계획된 소비일 확률↑)</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F27</td><td><code>routine_flag</code></td><td>반복 거래 여부</td><td>배치</td><td>L1, L2, L3</td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">F. 누적 소비 추세</td></tr>
+<tr><td>F28</td><td><code>mtd_over_monthly_ewma</code></td><td>이번 달 누적 지출 / 평소 월 지출</td><td>실시간</td><td>L2, L3</td></tr>
+<tr><td>F29</td><td><code>days_into_month_ratio</code></td><td>월 진행률 (F28 보정용)</td><td>실시간</td><td>L3</td></tr>
+<tr><td>F30</td><td><code>budget_burn_deviation</code></td><td><code>F28 / F29 − 1</code> (진도 대비 초과율)</td><td>실시간</td><td>L2, L3</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="t">데이터 누수(leakage) 방지 규칙 — 반드시 지킬 것</div>
+  <p>피처를 계산할 때 <strong>현재 거래 자신을 포함한 통계를 쓰면 안 된다</strong>. 예를 들어 <code>amt_over_p95</code>의 p95는 <em>이 거래를 제외한 과거 90일</em>에서 계산해야 한다. 이 거래를 포함해 버리면 고액 거래일수록 p95가 같이 올라가 이상 신호가 희석된다. 배치로 만든 프로파일을 쓰면 자연히 지켜지지만, 백테스트 코드를 짤 때는 <code>approved_at &lt; current_tx.approved_at</code> 조건을 명시적으로 걸어야 한다. 이 실수는 백테스트 성능을 비현실적으로 높게 만들고, 실제 배포 시 성능이 급락하는 전형적 원인이다.</p>
+</div>
+
+<h3 id="s5-2" class="anchor-pad">5.2 시간 윈도우 집계 구현</h3>
+
+<pre><code># ── Redis 슬라이딩 윈도우 : 벨로시티 피처 ──────────────────────
+# ZSET key: velo:{user_id}  member: tx_id  score: unix_ts
+
+async def record_and_get_velocity(r, user_id: str, tx_id: str,
+                                   amount: int, ts: float) -&gt; dict:
+    k_cnt = f"velo:{user_id}"
+    k_amt = f"veloamt:{user_id}"
+    k_mch = f"velomch:{user_id}"
+
+    pipe = r.pipeline()
+    # 1) 만료 데이터 제거 (24시간 초과)
+    pipe.zremrangebyscore(k_cnt, 0, ts - 86400)
+    pipe.zremrangebyscore(k_amt, 0, ts - 86400)
+    pipe.zremrangebyscore(k_mch, 0, ts - 86400)
+    # 2) 조회 (현재 거래 기록 이전에!)
+    pipe.zcount(k_cnt, ts - 3600,  ts)      # tx_count_1h
+    pipe.zcount(k_cnt, ts - 86400, ts)      # tx_count_24h
+    pipe.zrangebyscore(k_amt, ts - 3600,  ts)
+    pipe.zrangebyscore(k_amt, ts - 86400, ts)
+    pipe.zrangebyscore(k_mch, ts - 3600,  ts)
+    res = await pipe.execute()
+
+    cnt_1h, cnt_24h = res[3], res[4]
+    sum_1h  = sum(int(m.split(':')[1]) for m in res[5])
+    sum_24h = sum(int(m.split(':')[1]) for m in res[6])
+    distinct_mch_1h = len({m.split(':')[1] for m in res[7]})
+
+    # 3) 현재 거래 기록 (조회 이후 — 누수 방지)
+    pipe = r.pipeline()
+    pipe.zadd(k_cnt, {tx_id: ts})
+    pipe.zadd(k_amt, {f"{tx_id}:{amount}": ts})
+    pipe.zadd(k_mch, {f"{tx_id}:{merchant_id}": ts})
+    pipe.expire(k_cnt, 90000); pipe.expire(k_amt, 90000); pipe.expire(k_mch, 90000)
+    await pipe.execute()
+
+    return {"tx_count_1h": cnt_1h, "tx_count_24h": cnt_24h,
+            "tx_sum_1h": sum_1h,  "tx_sum_24h": sum_24h,
+            "distinct_merchants_1h": distinct_mch_1h}
+</code></pre>
+
+<pre><code>-- ── 프로파일 배치 : PostgreSQL 한 방 쿼리로 전체 통계 산출 ─────
+WITH base AS (
+    SELECT user_id, amount, category, merchant_id, approved_at,
+           ln(amount) AS log_amt
+    FROM   transactions
+    WHERE  approved_at &gt;= now() - INTERVAL '90 days'
+      AND  tx_type = 'APPROVAL'
+      AND  is_excluded = FALSE
+),
+overall AS (
+    SELECT user_id,
+           count(*)                                              AS n,
+           sum(amount)                                           AS total,
+           percentile_cont(0.50) WITHIN GROUP (ORDER BY amount)  AS median,
+           percentile_cont(0.75) WITHIN GROUP (ORDER BY amount)  AS p75,
+           percentile_cont(0.90) WITHIN GROUP (ORDER BY amount)  AS p90,
+           percentile_cont(0.95) WITHIN GROUP (ORDER BY amount)  AS p95,
+           percentile_cont(0.99) WITHIN GROUP (ORDER BY amount)  AS p99,
+           max(amount)                                           AS max_amt,
+           avg(log_amt)                                          AS log_mean,
+           stddev_samp(log_amt)                                  AS log_std
+    FROM base GROUP BY user_id
+),
+-- MAD(중앙값 절대편차)는 2-pass 필요
+mad_calc AS (
+    SELECT b.user_id,
+           percentile_cont(0.50) WITHIN GROUP (ORDER BY abs(b.amount - o.median)) AS mad,
+           percentile_cont(0.50) WITHIN GROUP (ORDER BY abs(b.log_amt - ln(o.median))) AS mad_log
+    FROM base b JOIN overall o USING (user_id)
+    GROUP BY b.user_id
+),
+by_cat AS (
+    SELECT user_id, category,
+           count(*) AS n,
+           percentile_cont(0.50) WITHIN GROUP (ORDER BY amount) AS median,
+           percentile_cont(0.95) WITHIN GROUP (ORDER BY amount) AS p95,
+           max(amount) AS max_amt,
+           sum(amount)::numeric / sum(sum(amount)) OVER (PARTITION BY user_id) AS share
+    FROM base GROUP BY user_id, category
+)
+SELECT o.*, m.mad, m.mad_log,
+       jsonb_object_agg(c.category,
+           jsonb_build_object('n', c.n, 'median', c.median, 'p95', c.p95,
+                              'max', c.max_amt, 'share', round(c.share,4),
+                              'fallback', c.n &lt; 5)) AS cat_stats
+FROM overall o
+JOIN mad_calc m USING (user_id)
+JOIN by_cat  c USING (user_id)
+GROUP BY o.user_id, o.n, o.total, o.median, o.p75, o.p90, o.p95, o.p99,
+         o.max_amt, o.log_mean, o.log_std, m.mad, m.mad_log;
+</code></pre>
+
+<h3 id="s5-3" class="anchor-pad">5.3 온라인·오프라인 피처 일관성</h3>
+
+<p>학습 시(배치, pandas)와 판정 시(실시간, Python 함수)가 <strong>다른 코드로 같은 피처를 계산하면 반드시 어긋난다</strong>(training-serving skew). 이를 막는 세 가지 장치:</p>
+
+<ol>
+<li><strong>단일 구현 원칙</strong> — 피처 계산 함수는 <code>features/transforms.py</code> 한 곳에만 둔다. 배치는 이 함수를 <code>df.apply</code>로 감싸 호출하고, 실시간도 같은 함수를 dict에 대해 호출한다.</li>
+<li><strong>피처 스냅샷 저장</strong> — 판정 시 사용한 피처값을 <code>risk_assessments.features</code>(JSONB)에 그대로 저장한다. 재학습 시 이 스냅샷을 학습 데이터로 쓰면 skew가 원천 차단된다.</li>
+<li><strong>일관성 테스트</strong> — CI에서 동일 거래 100건에 대해 배치 경로와 실시간 경로 피처를 비교, 상대오차 <code>1e-6</code> 초과 시 빌드 실패(13.1 <code>AC-FEAT-01</code>).</li>
+</ol>
+
+<h3 id="s5-4" class="anchor-pad">5.4 콜드스타트 처리</h3>
+
+<p>가입 직후 사용자는 프로파일이 없다. 아무 판정도 안 하면 초기 사용자가 보호받지 못하고, 무리하게 판정하면 오탐 폭탄이 된다. <strong>3단 폴백 체인</strong>으로 해결한다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>단계</th><th>조건</th><th>사용 분포</th><th>액션 정책</th></tr></thead>
+<tbody>
+<tr><td><strong>T0 관찰기</strong></td><td>거래 &lt; 30건 또는 &lt; 14일</td><td>동질 집단(peer) 분포만 사용</td><td>R3 이상만 알림, 자동 정지 <strong>비활성</strong></td></tr>
+<tr><td><strong>T1 혼합기</strong></td><td>30~100건</td><td><code>w·개인 + (1−w)·peer</code>, <code>w = n/100</code></td><td>R3 알림, R4 정지는 룰 히트 2개 이상일 때만</td></tr>
+<tr><td><strong>T2 정상</strong></td><td>≥ 100건 &amp; ≥ 30일</td><td>개인 분포 100%</td><td>전체 정책 적용</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>동질 집단(Peer Group) 정의</h4>
+<pre><code># 개인 이력이 없을 때 "비슷한 사람들"의 분포를 빌려온다.
+# 민감 정보(나이·성별·소득)를 쓰지 않고 행동 기반으로만 군집화한다.
+
+PEER_DIMENSIONS = [
+    "monthly_spend_bucket",   # 5구간: ~50만/~100만/~200만/~400만/400만+
+    "tx_frequency_bucket",    # 3구간: 저(~20건/월)/중(~60)/고(60+)
+    "online_ratio_bucket",    # 3구간: ~20% / ~50% / 50%+
+]
+# → 최대 45개 peer group. 각 그룹별로 카테고리 금액 분위수를 사전 계산.
+
+def get_reference_stats(user_profile, category):
+    """3단 폴백 체인"""
+    cat = user_profile.cat_stats.get(category)
+    if cat and cat["n"] &gt;= 5:
+        return cat, "PERSONAL"                       # ① 개인 카테고리 통계
+    if user_profile.tx_count &gt;= 30:
+        return blend(user_profile.stats,             # ② 개인 전체 + peer 혼합
+                     peer_stats(user_profile.peer_id, category),
+                     w=min(user_profile.tx_count / 100, 1.0)), "BLENDED"
+    return peer_stats(user_profile.peer_id, category), "PEER"   # ③ peer만
+</code></pre>
+
+<div class="box info">
+  <div class="t">폴백 상태는 반드시 판정 결과에 기록한다</div>
+  <p><code>reference_source ∈ {PERSONAL, BLENDED, PEER}</code>를 <code>risk_assessments.features</code>에 남긴다. 나중에 “PEER 기반 판정의 오탐률이 PERSONAL의 3배”라는 사실이 드러나면, 그 구간의 임계값만 따로 올릴 수 있다. 기록하지 않으면 이런 분석 자체가 불가능하다.</p>
+</div>
+
+<h2 id="s6" class="anchor-pad"><span class="num">06</span>이상 탐지 엔진</h2>
+
+<h3 id="s6-1" class="anchor-pad">6.1 3계층 하이브리드 설계</h3>
+
+<p>단일 모델로 가지 않는 이유는 명확하다. 룰만 쓰면 새로운 패턴을 못 잡고, ML만 쓰면 왜 막혔는지 설명할 수 없으며 규제 대응이 불가능하다. 세 계층은 <strong>서로 다른 실패 모드</strong>를 가지므로 조합했을 때 견고해진다.</p>
+
+<div class="layer l1">
+  <div class="h">L1 · 룰 엔진 <span class="chip c-ok">결정론적 · &lt;5ms · 100% 설명가능</span></div>
+  <p>명시적 임계 조건. “개인 p99 초과”, “신규 가맹점 20만 원 이상”처럼 사람이 읽고 검증할 수 있다. <strong>강점:</strong> 즉시 배포·즉시 이해·오작동 시 즉시 차단. <strong>약점:</strong> 조건 조합 폭발, 새 패턴 미대응.</p>
+</div>
+<div class="layer l2">
+  <div class="h">L2 · 통계 모델 <span class="chip c-p1">적응형 · &lt;5ms · 수식으로 설명가능</span></div>
+  <p>개인 분포에서의 이탈 정도를 연속값으로 산출. 로버스트 통계(MAD, 분위수)를 쓰므로 극단값에 흔들리지 않는다. <strong>강점:</strong> 사용자마다 자동으로 기준이 달라짐. <strong>약점:</strong> 피처 간 상호작용을 못 본다(금액은 정상인데 시간+가맹점 조합이 이상한 경우).</p>
+</div>
+<div class="layer l3">
+  <div class="h">L3 · ML 모델 <span class="chip c-p2">비선형 · ~300ms · SHAP로 설명</span></div>
+  <p>다변량 상호작용을 학습. 1단계는 IsolationForest(비지도, 라벨 불필요), 라벨이 500건 이상 쌓이면 2단계 LightGBM(지도)로 승격. <strong>강점:</strong> 조합 패턴 포착. <strong>약점:</strong> 블랙박스성, 드리프트 취약, 학습 데이터 필요.</p>
+</div>
+
+<div class="diagram">
+<pre>
+                          transaction + features
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        ▼                           ▼                           ▼
+ ┌─────────────┐            ┌─────────────┐            ┌─────────────┐
+ │  L1 RULES   │            │  L2 STATS   │            │   L3 ML     │
+ │             │            │             │            │             │
+ │ 15개 룰 평가 │            │ 4개 통계축   │            │ Isolation   │
+ │ hit 목록 반환│            │ 가중 결합    │            │ Forest      │
+ │             │            │             │            │ (→LightGBM) │
+ │ 0~100       │            │ 0~100       │            │ 0~100       │
+ └──────┬──────┘            └──────┬──────┘            └──────┬──────┘
+        │ w=0.35                   │ w=0.35                   │ w=0.30
+        └───────────────┬──────────┴──────────┬───────────────┘
+                        ▼                     │
+                 ┌──────────────┐             │  타임아웃 300ms 초과 시
+                 │ SCORE FUSION │◀────────────┘  L3 제외, w 재정규화
+                 │  + 보정 규칙  │                (0.54 / 0.46)
+                 └──────┬───────┘
+                        ▼
+            ┌───────────────────────┐
+            │ HARD OVERRIDE 검사     │  ← 화이트리스트/여행모드/routine
+            │  · 무조건 통과 조건     │
+            │  · 무조건 R4 조건       │
+            └──────────┬────────────┘
+                       ▼
+                 최종 score → grade
+</pre>
+</div>
+<p class="cap">그림 6-1. 3계층 스코어링 파이프라인</p>
+
+<h3 id="s6-2" class="anchor-pad">6.2 L1 룰 엔진 명세</h3>
+
+<h4>룰 정의 DSL</h4>
+<p>룰은 코드에 하드코딩하지 않고 <code>rule_configs</code> 테이블에 YAML/JSON으로 저장한다. 운영 중 룰을 끄거나 파라미터를 바꿀 때 재배포가 필요 없어야 한다.</p>
+
+<pre><code>rules:
+  - id: R-02
+    name: "개인 상위 1% 초과 결제"
+    enabled: true
+    weight: 25                      # 히트 시 L1 점수 기여
+    severity: HIGH
+    condition:
+      all:
+        - { feature: amt_over_p99,  op: "&gt;=", value: 1.0 }
+        - { feature: routine_flag,  op: "==", value: false }
+        - { feature: amount,        op: "&gt;=", value: 100000 }   # 소액 노이즈 차단
+    message: "평소 결제 상위 1%({p99:,}원)를 넘는 금액입니다"
+
+  - id: R-05
+    name: "신규 가맹점 고액 결제"
+    enabled: true
+    weight: 20
+    severity: HIGH
+    condition:
+      all:
+        - { feature: merchant_novelty, op: "==", value: 1.0 }
+        - { feature: amount,           op: "&gt;=", value: 200000 }
+    message: "한 번도 이용한 적 없는 가맹점에서 고액 결제가 발생했습니다"
+
+  - id: R-03
+    name: "단시간 연속 결제"
+    enabled: true
+    weight: 22
+    severity: HIGH
+    condition:
+      any:
+        - all:
+            - { feature: tx_count_1h,           op: "&gt;=", value: 4 }
+            - { feature: distinct_merchants_1h, op: "&gt;=", value: 3 }
+        - { feature: secs_since_prev_tx, op: "&lt;=", value: 60,
+            with: { feature: amount, op: "&gt;=", value: 50000 } }
+    message: "1시간 내 {tx_count_1h}건의 결제가 서로 다른 가맹점에서 발생했습니다"
+</code></pre>
+
+<h4>룰 카탈로그 (전체 15종)</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>룰</th><th>조건 요약</th><th>가중치</th><th>P</th></tr></thead>
+<tbody>
+<tr><td>R-01</td><td>개인 최고액 경신</td><td><code>amount &gt; profile.max × 1.2</code> &amp; <code>amount ≥ 100,000</code></td><td>28</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>R-02</td><td>개인 p99 초과</td><td><code>amt_over_p99 ≥ 1.0</code> &amp; not routine</td><td>25</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>R-03</td><td>단시간 연속 결제</td><td>1h 4건+ &amp; 서로 다른 가맹점 3곳+</td><td>22</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>R-04</td><td>일일 한도 급증</td><td><code>tx_sum_24h ≥ 평소 일평균 × 5</code></td><td>20</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>R-05</td><td>신규 가맹점 고액</td><td>novelty=1.0 &amp; <code>amount ≥ 200,000</code></td><td>20</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td>R-06</td><td>심야 고액 결제</td><td>00~06시 &amp; <code>amt_over_p95 ≥ 2</code> &amp; <code>night_ratio &lt; 0.05</code></td><td>18</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-07</td><td>해외 거래</td><td><code>is_overseas</code> &amp; 여행모드 미설정</td><td>30</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-08</td><td>미경험 카테고리 고액</td><td><code>cat_novelty = 1.0</code> &amp; <code>amount ≥ 150,000</code></td><td>16</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-09</td><td>소액 테스트 후 고액</td><td>10분 내 <code>&lt;5,000원</code> 승인 → <code>≥300,000원</code> 승인 (카드 유효성 테스트 전형 패턴)</td><td>32</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-10</td><td>동일 가맹점 반복 승인</td><td>10분 내 동일 가맹점 3건+</td><td>18</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-11</td><td>카테고리 최대 초과</td><td><code>cat_amt_over_max ≥ 2.0</code> &amp; <code>cat.n ≥ 3</code></td><td>15</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td>R-12</td><td>월 예산 초과 급증</td><td><code>budget_burn_deviation ≥ 1.5</code></td><td>12</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td>R-13</td><td>신규 지역 결제</td><td>오프라인 &amp; 미경험 시·군·구 &amp; <code>amount ≥ 100,000</code></td><td>14</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td>R-14</td><td>장기 미사용 후 고액</td><td>30일+ 미사용 → <code>amt_over_p95 ≥ 2</code></td><td>20</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td>R-15</td><td>고위험 MCC</td><td>귀금속·상품권·현금서비스성 MCC &amp; 첫 이용</td><td>26</td><td><span class="chip c-p2">P2</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>L1 점수 산출</h4>
+<pre><code>def score_l1(hits: list[Rule]) -&gt; tuple[int, list[dict]]:
+    """
+    단순 합산이 아니라 '수확 체감(diminishing returns)'을 적용한다.
+    룰 5개가 동시에 히트해도 점수가 200이 되면 안 되고,
+    서로 상관된 룰(R-01과 R-02는 거의 같이 히트)의 중복 가산을 막아야 한다.
+    """
+    if not hits:
+        return 0, []
+
+    # 가중치 내림차순 정렬 후 기하급수 감쇠
+    ws = sorted((h.weight for h in hits), reverse=True)
+    raw = sum(w * (0.6 ** i) for i, w in enumerate(ws))
+    #   1등 100%, 2등 60%, 3등 36%, 4등 21.6% ...
+
+    score = min(100, round(raw * 100 / 45))   # 45점 ≈ 만점 기준 정규화
+    reasons = [{"code": h.id, "label": h.render_message(),
+                "contribution": round(h.weight * (0.6 ** i) / raw, 3)}
+               for i, h in enumerate(sorted(hits, key=lambda x: -x.weight))]
+    return score, reasons
+</code></pre>
+
+<h3 id="s6-3" class="anchor-pad">6.3 L2 통계 모델</h3>
+
+<div class="box info">
+  <div class="t">왜 평균±3σ를 쓰면 안 되는가 — 이 프로젝트의 핵심 통계 판단</div>
+  <p>개인 결제 금액은 <strong>강한 우편향(right-skewed) 롱테일</strong> 분포다. median 18,400원인 사용자의 평균은 26,000원, 표준편차는 45,000원쯤 나온다. 평균+3σ = 161,000원이므로 그 이하는 전부 정상으로 통과된다. 게다가 <em>과거에 한 번 있었던 고액 결제가 표준편차를 부풀려</em> 임계값을 스스로 무력화한다. 해결책은 두 가지를 동시에 쓰는 것이다: ① <strong>로그 변환</strong>으로 분포를 대칭에 가깝게 만들고, ② <strong>MAD(중앙값 절대편차)</strong>로 극단값 영향을 제거한다.</p>
+</div>
+
+<h4>L2를 구성하는 4개 축</h4>
+
+<pre><code># ── 축 1. 로그-로버스트 Z (전체 분포 이탈도) ────────────────────
+# MAD에 1.4826을 곱하면 정규분포에서 표준편차와 동일한 스케일이 된다.
+
+def axis_amount(amount, profile):
+    log_amt    = math.log(amount)
+    log_median = math.log(profile["median"])
+    scale      = 1.4826 * profile["mad_log"]
+    scale      = max(scale, 0.35)          # 하한: 지출이 지나치게 균일한 사용자 보호
+    z = (log_amt - log_median) / scale
+    # z를 0~100으로 사상 : z=2 → 40점, z=3 → 60점, z=5 → 87점
+    return 100 * (1 - math.exp(-max(z - 1.0, 0) / 2.2))
+
+
+# ── 축 2. 조건부 분위수 (카테고리/가맹점 맥락) ───────────────────
+def axis_context(amount, profile, category, merchant):
+    ref, source = get_reference_stats(profile, category)   # 5.4 폴백 체인
+
+    if merchant.is_special:
+        # 특수 가맹점: 전체가 아니라 '이 가맹점에서의 내 분포'로 판단
+        ref = profile.merchant_stats.get(merchant.id) or ref
+
+    # 경험적 분위수 → 상위 꼬리만 점수화
+    q = empirical_percentile(amount, ref)      # 0~1
+    if q &lt; 0.95:
+        return 0
+    score = (q - 0.95) / 0.05 * 100            # 0.95→0, 1.0→100
+    # peer 기반이면 신뢰도가 낮으므로 감쇠
+    return score * (1.0 if source == "PERSONAL" else 0.7)
+
+
+# ── 축 3. 시간 이례도 ──────────────────────────────────────────
+def axis_time(hour, dow, profile):
+    hh = profile["time_stats"]["hour_hist"]
+    p_hour = hh[hour]
+    # 라플라스 스무딩으로 0확률 방지
+    p_smooth = (p_hour * profile["n"] + 1) / (profile["n"] + 24)
+    surprise = -math.log(p_smooth)             # 정보량(bit)
+    baseline = -math.log(1 / 24)               # 균등분포 기준 3.18
+    return min(100, max(0, (surprise - baseline) / baseline * 100))
+
+
+# ── 축 4. 벨로시티 이탈 ────────────────────────────────────────
+def axis_velocity(feats, profile):
+    daily_avg = profile["monthly_sum_ewma"] / 30
+    ratio_sum = feats["tx_sum_24h"] / max(daily_avg, 10000)
+    weekly_avg_cnt = profile["weekly_tx_count_ewma"] / 7
+    ratio_cnt = feats["tx_count_24h"] / max(weekly_avg_cnt, 1)
+    r = max(ratio_sum, ratio_cnt)
+    if r &lt;= 2.0:
+        return 0
+    return min(100, (r - 2.0) / 6.0 * 100)     # r=8 → 100점
+
+
+# ── 융합 ──────────────────────────────────────────────────────
+L2_WEIGHTS = {"amount": 0.40, "context": 0.30, "time": 0.12, "velocity": 0.18}
+
+def score_l2(tx, profile, feats):
+    axes = {
+        "amount":   axis_amount(tx.amount, profile),
+        "context":  axis_context(tx.amount, profile, tx.category, tx.merchant),
+        "time":     axis_time(tx.hour, tx.dow, profile),
+        "velocity": axis_velocity(feats, profile),
+    }
+    # routine 거래는 전체 감쇠 (원안의 '단순 거래 제외')
+    damp = 0.3 if tx.routine_flag else 1.0
+    # 단, routine이어도 평소의 3배를 넘으면 감쇠 해제
+    if tx.routine_flag and feats["amt_over_median"] &gt;= 3.0:
+        damp = 1.0
+
+    score = sum(L2_WEIGHTS[k] * v for k, v in axes.items()) * damp
+    return round(min(100, score)), axes
+</code></pre>
+
+<h4>축별 기여도 예시 (2.3 시나리오)</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>축</th><th>계산</th><th>원점수</th><th>가중</th><th>기여</th></tr></thead>
+<tbody>
+<tr><td>amount</td><td>z = (12.65 − 9.82)/1.05 = 2.69</td><td>82</td><td>0.40</td><td>32.8</td></tr>
+<tr><td>context</td><td>ELECTRONICS 분위수 0.998 (fallback=true → ×0.7)</td><td>96 → 67</td><td>0.30</td><td>20.1</td></tr>
+<tr><td>time</td><td>금 19시, 흔한 시간대</td><td>8</td><td>0.12</td><td>1.0</td></tr>
+<tr><td>velocity</td><td>24h 합계 정상 범위</td><td>0</td><td>0.18</td><td>0.0</td></tr>
+<tr><td colspan="4"><strong>L2 합계</strong></td><td><strong>53.9 → 78</strong>*</td></tr>
+</tbody>
+</table>
+</div>
+<p class="footnote">* 실제 구현에서는 축 점수를 그대로 가중합하지 않고, 최대 축에 가산점을 주는 <code>soft-max</code> 보정을 적용한다: <code>final = 0.7·weighted_sum + 0.3·max_axis</code>. 한 축만 극단적으로 이상한 경우(예: 금액만 10배)를 놓치지 않기 위함이다.</p>
+
+<h3 id="s6-4" class="anchor-pad">6.4 L3 ML 모델</h3>
+
+<h4>2단계 승격 전략</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>단계</th><th>조건</th><th>모델</th><th>학습 데이터</th><th>역할</th></tr></thead>
+<tbody>
+<tr><td><strong>Stage 1</strong></td><td>서비스 개시~라벨 500건 미만</td><td>IsolationForest<br>(+ 보조: LOF)</td><td>정상 거래 전체 (비지도)</td><td>다변량 이상치 점수</td></tr>
+<tr><td><strong>Stage 2</strong></td><td>확정 라벨 ≥ 500건<br>(양성 ≥ 100건)</td><td>LightGBM<br>(binary, scale_pos_weight)</td><td>피처 스냅샷 + 사용자 응답 라벨</td><td>지도학습 확률 예측</td></tr>
+<tr><td><strong>Stage 3</strong></td><td><span class="chip c-p3">P3</span> 라벨 ≥ 5,000건</td><td>Autoencoder 재구성오차<br>또는 시퀀스 모델</td><td>사용자별 거래 시퀀스</td><td>순서 의존 패턴 포착</td></tr>
+</tbody>
+</table>
+</div>
+
+<pre><code># ── Stage 1 : IsolationForest ────────────────────────────────
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import QuantileTransformer
+
+L3_FEATURES = [
+    "amt_over_median", "amt_over_p95", "log_robust_z", "amt_percentile",
+    "cat_amt_over_p95", "cat_amt_over_max", "merchant_novelty",
+    "merchant_tx_count", "cat_novelty", "hour_rarity", "dow_rarity",
+    "is_night", "secs_since_prev_tx", "tx_count_1h", "tx_count_24h",
+    "sum_24h_over_daily_avg", "distinct_merchants_1h", "is_online",
+    "online_rate_deviation", "is_overseas", "region_novelty",
+    "is_installment", "routine_flag", "mtd_over_monthly_ewma",
+    "budget_burn_deviation",
+]
+
+def train_stage1(df_normal):
+    # 꼬리가 두꺼운 피처가 많으므로 분위수 변환으로 정규화
+    qt = QuantileTransformer(output_distribution="normal",
+                             n_quantiles=1000, random_state=42)
+    X = qt.fit_transform(df_normal[L3_FEATURES])
+
+    model = IsolationForest(
+        n_estimators=300,
+        max_samples=256,          # 논문 권장값. 크게 잡을수록 오히려 성능 저하
+        contamination=0.01,       # 이상 비율 사전 가정 1%
+        max_features=0.8,
+        bootstrap=False,
+        random_state=42,
+        n_jobs=-1,
+    )
+    model.fit(X)
+    return model, qt
+
+
+def score_l3(tx_features, model, qt, calib):
+    X = qt.transform([[tx_features[f] for f in L3_FEATURES]])
+    raw = -model.score_samples(X)[0]        # 클수록 이상
+    # 원점수는 스케일이 없으므로 학습셋 분포 기준 분위수로 캘리브레이션
+    pct = calib.percentile_of(raw)          # 0~1
+    return round(pct * 100)
+
+
+# ── Stage 2 : LightGBM (라벨 축적 후) ─────────────────────────
+import lightgbm as lgb
+
+params = dict(
+    objective="binary", metric="average_precision",
+    learning_rate=0.03, num_leaves=31, max_depth=6,
+    min_data_in_leaf=40, feature_fraction=0.8, bagging_fraction=0.8,
+    bagging_freq=5, lambda_l2=1.0,
+    scale_pos_weight=None,      # = neg/pos 로 자동 설정
+    is_unbalance=False,         # scale_pos_weight와 동시 사용 금지
+)
+
+# 검증은 반드시 시간 순 분할 (랜덤 분할 금지 — 미래 정보 누수)
+# train: 2025-08 ~ 2026-05 / valid: 2026-06 / test: 2026-07~08
+</code></pre>
+
+<div class="box danger">
+  <div class="t">ML 도입 시 반드시 지킬 3가지</div>
+  <p><strong>① 시간 순 분할.</strong> 랜덤 K-fold를 쓰면 미래 거래로 과거를 예측하는 셈이 되어 성능이 부풀려진다.<br>
+  <strong>② 라벨의 편향 인식.</strong> 사용자 응답 라벨은 <em>알림을 보낸 거래에만</em> 존재한다. 알림을 안 보낸 거래는 라벨이 없지 정상이 아니다. 이를 무시하고 “무알림=정상”으로 학습하면 모델이 현재 룰을 그대로 복제하게 된다(selection bias). 해결책: 매일 소량(0.5%)을 무작위로 알림 보내 편향 없는 라벨을 확보하거나, PU-learning 기법을 적용한다.<br>
+  <strong>③ ML 점수 단독으로 카드를 정지하지 않는다.</strong> R4 자동 정지는 항상 L1 룰 히트를 필수 조건으로 둔다(7.1). 설명할 수 없는 이유로 카드를 막으면 안 된다.</p>
+</div>
+
+<h3 id="s6-5" class="anchor-pad">6.5 스코어 융합</h3>
+
+<pre><code>BASE_WEIGHTS = {"l1": 0.35, "l2": 0.35, "l3": 0.30}
+
+def fuse(l1, l2, l3, l3_status, tx, profile, feats):
+    # 1) L3 실패 시 가중치 재정규화
+    if l3_status != "OK":
+        w = {"l1": 0.54, "l2": 0.46, "l3": 0.0}
+        l3 = 0
+    else:
+        w = BASE_WEIGHTS
+
+    base = w["l1"]*l1 + w["l2"]*l2 + w["l3"]*l3
+
+    # 2) 최대 계층 가산 — 한 계층만 강하게 반응한 경우를 놓치지 않는다
+    strongest = max(l1, l2, l3)
+    score = 0.75 * base + 0.25 * strongest
+
+    # 3) 맥락 보정 (가감산, 각 항목 상한 존재)
+    adj = 0
+    if feats["mtd_over_monthly_ewma"] &lt; 1.0:      adj -= 3   # 이번달 지출 정상
+    if feats["is_installment"]:                    adj -= 5   # 할부 = 계획된 소비
+    if profile["is_cold_start"]:                   adj -= 8   # 근거 부족 → 보수적
+    if feats["merchant_tx_count"] &gt;= 10:           adj -= 12  # 단골 가맹점
+    if feats["is_overseas"]:                       adj += 10
+    if feats["tx_count_1h"] &gt;= 5:                  adj += 8
+    adj = max(-20, min(20, adj))
+
+    score = max(0, min(100, round(score + adj)))
+
+    # 4) HARD OVERRIDE — 스코어와 무관하게 결과를 강제
+    if tx.merchant_id in user_whitelist(tx.user_id):
+        return 0, "WHITELIST"
+    if travel_mode_active(tx.user_id) and feats["is_overseas"]:
+        return min(score, 45), "TRAVEL_MODE"       # R2 이하로 제한
+    if feats["rule_hit_R09"]:                      # 소액테스트→고액 패턴
+        return max(score, 92), "FORCED_CRITICAL"   # 무조건 R4
+
+    return score, "NORMAL"
+</code></pre>
+
+<h4>가중치 초기값의 근거와 조정 절차</h4>
+<p>0.35/0.35/0.30은 <strong>임의값이 아니라 시작점</strong>이다. 다음 절차로 조정한다.</p>
+<ol>
+<li>백테스트 데이터셋(부록 A, 라벨 포함)에서 가중치를 <code>0.1</code> 간격 그리드 서치(합=1 제약, 66개 조합).</li>
+<li>목적함수는 <strong>FPR ≤ 0.5% 제약 하의 Recall 최대화</strong>.</li>
+<li>상위 5개 조합의 성능 차이가 2%p 이내면 <em>가장 L1 비중이 높은 조합</em>을 택한다(설명가능성 우선).</li>
+<li>운영 3개월 후 실제 라벨로 재탐색. 변경 시 챔피언-챌린저로 2주 병행(10.4).</li>
+</ol>
+
+<h3 id="s6-6" class="anchor-pad">6.6 전체 판정 의사코드</h3>
+
+<pre><code>FUNCTION assess_transaction(tx) -&gt; Assessment:
+
+  # ── 0. 전처리 ────────────────────────────────────────────────
+  IF is_duplicate(tx.card_id, tx.approval_no) THEN
+      RETURN Assessment(skipped=True, reason="DUPLICATE")
+  IF tx.tx_type IN ('CANCEL', 'PARTIAL_CANCEL') THEN
+      mark_original_excluded(tx.original_tx_id)
+      RETURN Assessment(skipped=True, reason="CANCELLATION")
+
+  # ── 1. 프로파일 로드 ─────────────────────────────────────────
+  profile ← cache_get("profile:" + tx.user_id)
+  IF profile IS NULL THEN
+      profile ← db_load_latest_profile(tx.user_id)
+      IF profile IS NULL THEN
+          profile ← peer_default_profile(tx.user_id)   # 완전 신규
+          profile.is_cold_start ← True
+      cache_set("profile:" + tx.user_id, profile, ttl=26h)
+
+  IF age_of(profile) &gt; 48 hours THEN
+      emit_metric("profile_stale", tx.user_id)          # 경보만, 판정은 진행
+
+  # ── 2. 피처 생성 ─────────────────────────────────────────────
+  velo   ← redis_velocity(tx.user_id, tx.tx_id, tx.amount, tx.ts)
+  merch  ← resolve_merchant(tx.merchant_name, tx.mcc)
+  feats  ← build_features(tx, profile, velo, merch)     # 5.1의 F01~F30
+
+  # ── 3. 3계층 스코어링 (L1/L2 동기, L3 타임아웃 보호) ──────────
+  l1_score, l1_reasons ← score_l1(evaluate_rules(feats, active_rules()))
+  l2_score, l2_axes    ← score_l2(tx, profile, feats)
+
+  TRY WITH TIMEOUT 300ms:
+      l3_score ← score_l3(feats, ml_model, quantile_tf, calibrator)
+      l3_status ← "OK"
+  CATCH Timeout:
+      l3_score ← 0 ; l3_status ← "TIMEOUT"
+      emit_metric("l3_timeout")
+
+  # ── 4. 융합 및 등급 ──────────────────────────────────────────
+  score, override ← fuse(l1_score, l2_score, l3_score, l3_status,
+                          tx, profile, feats)
+  grade ← to_grade(score, l1_reasons, profile)          # 7.1
+
+  # ── 5. 근거 생성 ─────────────────────────────────────────────
+  reasons ← merge_reasons(l1_reasons,
+                          top_axes(l2_axes, k=2),
+                          shap_top_k(feats, k=3) IF l3_status = "OK")
+  reasons ← rank_and_humanize(reasons, limit=3)         # 6.8
+
+  # ── 6. 영속화 (판정 응답 전에 반드시 기록) ───────────────────
+  assessment ← persist(RiskAssessment(
+      tx_id=tx.tx_id, score=score, grade=grade,
+      l1=l1_score, l2=l2_score, l3=l3_score, l3_status=l3_status,
+      reasons=reasons, features=feats,
+      profile_version=profile.version,
+      rule_version=active_rule_version(),
+      model_version=ml_model.version,
+      latency_ms=elapsed()))
+
+  # ── 7. 액션은 비동기 큐로 위임 (판정 경로를 막지 않는다) ──────
+  IF grade IN ('R2','R3','R4') THEN
+      enqueue(ActionTask(assessment_id=assessment.id, grade=grade))
+
+  RETURN assessment
+</code></pre>
+
+<h3 id="s6-7" class="anchor-pad">6.7 임계값 튜닝 방법론</h3>
+
+<p>“몇 점부터 이상인가”는 통계 문제가 아니라 <strong>비용 문제</strong>다. 다음 비용 함수를 최소화하는 임계값을 찾는다.</p>
+
+<pre><code>Cost(θ) = C_FN · FN(θ) + C_FP · FP(θ) + C_FRICTION · StepUp(θ)
+
+  C_FN       = 미탐 1건 비용     ≈ 평균 피해액 × 미복구율
+  C_FP       = 오탐 1건 비용     ≈ 사용자 불편 + 이탈 확률 × LTV
+  C_FRICTION = 추가인증 1건 비용 ≈ C_FP × 0.15
+</code></pre>
+
+<p>포트폴리오 환경에서는 실제 금액을 알 수 없으므로 <strong>상대비 <code>C_FN : C_FP = 10 : 1</code></strong>을 기본 가정으로 두고, 민감도 프리셋에 따라 5:1(보수) ~ 20:1(민감)으로 변경한다. 이 가정을 문서에 명시하는 것 자체가 설계 성숙도의 지표다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>단계</th><th>작업</th><th>산출물</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>백테스트 셋에서 스코어 분포 산출 (정상/이상 분리)</td><td>히스토그램, PR 곡선</td></tr>
+<tr><td>2</td><td>θ를 1점 단위로 스윕하며 TP/FP/FN 계수</td><td>θ별 confusion matrix</td></tr>
+<tr><td>3</td><td>비용 함수 평가, 최소 비용 θ* 산출</td><td>θ* 및 민감도 분석 그래프</td></tr>
+<tr><td>4</td><td>일일 알림 수 제약(≤0.5건/인) 확인, 위반 시 θ 상향</td><td>제약 만족 θ**</td></tr>
+<tr><td>5</td><td>등급 경계를 θ** 기준으로 배치 (7.1)</td><td>확정 임계값 세트</td></tr>
+<tr><td>6</td><td>사용자 세그먼트별(콜드스타트/고변동) 임계값 오프셋 산출</td><td>세그먼트 보정표</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s6-8" class="anchor-pad">6.8 설명가능성</h3>
+
+<p>“왜 막았는지 설명하지 못하는 시스템은 배포할 수 없다.” 이는 사용자 신뢰 문제이자 11.5의 자동화된 의사결정 관련 요구이기도 하다. 세 계층 모두에서 근거를 뽑아 <strong>사람의 문장</strong>으로 변환한다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>계층</th><th>근거 추출 방법</th><th>사용자용 문장 예시</th></tr></thead>
+<tbody>
+<tr><td>L1</td><td>히트한 룰의 <code>message</code> 템플릿에 실제값 바인딩</td><td>“평소 결제 상위 1%(145,000원)를 넘는 금액입니다”</td></tr>
+<tr><td>L2</td><td>기여도 상위 2개 축을 문장으로 매핑</td><td>“전자·컴퓨터 카테고리에서 평소 최고액(89,000원)의 3.5배입니다”</td></tr>
+<tr><td>L3</td><td>SHAP 값 상위 3개 피처 → 사전 정의 문구</td><td>“처음 이용하는 가맹점이라는 점이 판단에 크게 작용했습니다”</td></tr>
+</tbody>
+</table>
+</div>
+
+<pre><code>REASON_TEMPLATES = {
+  "amt_over_p99":       "평소 결제 상위 1%({p99:,}원)를 넘는 금액이에요",
+  "cat_amt_over_max":   "{category_ko}에서 평소 최고액({cat_max:,}원)의 {ratio:.1f}배예요",
+  "merchant_novelty":   "한 번도 이용한 적 없는 가맹점이에요",
+  "tx_count_1h":        "최근 1시간 동안 {n}건이 연속 결제됐어요",
+  "is_night":           "평소 결제가 거의 없는 새벽 시간대예요",
+  "is_overseas":        "해외 가맹점 결제예요",
+  "sum_24h_over_daily_avg": "오늘 하루 지출이 평소의 {ratio:.1f}배예요",
+}
+
+def rank_and_humanize(reasons, limit=3):
+    """
+    1) 중복 제거 : 같은 현상을 가리키는 근거는 하나만 (예: R-01과 R-02)
+    2) 기여도 순 정렬
+    3) 사용자 문장으로 렌더링, 최대 3개
+    4) 숫자는 반드시 실제값 바인딩 — '이상한 금액입니다' 같은 공허한 문구 금지
+    """
+    dedup = {}
+    for r in sorted(reasons, key=lambda x: -x["contribution"]):
+        family = REASON_FAMILY.get(r["code"], r["code"])
+        dedup.setdefault(family, r)
+    return [render(r) for r in list(dedup.values())[:limit]]
+</code></pre>
+
+<div class="box ok">
+  <div class="t">좋은 근거 문구 vs 나쁜 근거 문구</div>
+  <p><strong>나쁨:</strong> “이상 거래로 판단되었습니다” (정보량 0, 사용자가 판단할 근거 없음)<br>
+  <strong>나쁨:</strong> “이상 점수 78점, amt_over_p99=2.15” (내부 용어 노출)<br>
+  <strong>좋음:</strong> “평소 결제 상위 1%(145,000원)를 넘고, 처음 이용하는 가맹점이에요”<br>
+  기준은 하나다 — <em>사용자가 이 문장만 읽고 “아 맞다, 내가 그거 샀지” 또는 “어? 나 그런 적 없는데”를 즉시 판단할 수 있는가.</em></p>
+</div>
+<h2 id="s7" class="anchor-pad"><span class="num">07</span>액션 정책 — 알림과 카드 정지</h2>
+
+<h3 id="s7-1" class="anchor-pad">7.1 리스크 등급 정의</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>등급</th><th>스코어</th><th>추가 조건</th><th>의미</th><th>기대 발생률</th></tr></thead>
+<tbody>
+<tr><td><span class="chip c-p3">R0</span></td><td>0–29</td><td>—</td><td>정상. 기록만 한다</td><td>~93%</td></tr>
+<tr><td><span class="chip c-p3">R1</span></td><td>30–49</td><td>—</td><td>약한 이탈. 인앱 피드에만 표시</td><td>~5%</td></tr>
+<tr><td><span class="chip c-p2">R2</span></td><td>50–69</td><td>—</td><td>주의. 조용한 알림(무음 푸시)</td><td>~1.5%</td></tr>
+<tr><td><span class="chip c-p1">R3</span></td><td>70–89</td><td>—</td><td>고위험. 즉시 알림 + 확인 요청</td><td>~0.4%</td></tr>
+<tr><td><span class="chip c-p0">R4</span></td><td>90–100</td><td><strong>AND</strong> L1 룰 히트 ≥ 1 (severity=HIGH)<br><strong>AND</strong> 콜드스타트 아님</td><td>치명. 자동 카드 정지 + 즉시 알림</td><td>~0.1%</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box danger">
+  <div class="t">R4의 추가 조건이 왜 필수인가</div>
+  <p>스코어 90 이상만으로 카드를 정지하면, ML 모델이 오작동했을 때 <strong>설명 불가능한 이유로 사용자의 결제 수단이 차단된다</strong>. 그래서 R4에는 “사람이 읽을 수 있는 룰이 최소 1개는 히트해야 한다”는 조건을 건다. 즉 <em>카드 정지의 근거는 항상 명시적 룰이며, ML은 그 판단을 강화할 뿐 단독 근거가 되지 않는다.</em> 콜드스타트 사용자를 제외하는 이유도 같다 — 근거가 될 개인 데이터 자체가 없기 때문이다. 이 두 조건이 없으면 90점을 받았어도 R3로 강등된다.</p>
+</div>
+
+<h4>등급 승격·강등 규칙</h4>
+<pre><code>def to_grade(score, l1_reasons, profile) -&gt; str:
+    base = ("R4" if score &gt;= 90 else "R3" if score &gt;= 70 else
+            "R2" if score &gt;= 50 else "R1" if score &gt;= 30 else "R0")
+
+    # 강등 : R4 자격 미달
+    if base == "R4":
+        has_high_rule = any(r["severity"] == "HIGH" for r in l1_reasons)
+        if not has_high_rule or profile.is_cold_start:
+            base = "R3"
+
+    # 강등 : 알림 피로도 상한 (7.3)
+    if base in ("R2", "R3") and alerts_today(profile.user_id) &gt;= DAILY_CAP:
+        if base == "R2":
+            base = "R1"                      # R2는 억제
+        # R3 이상은 상한과 무관하게 발송 — 안전이 우선
+
+    # 승격 : 사용자 민감도 프리셋
+    if profile.sensitivity == "HIGH":
+        base = bump_up(base, steps=1, max_grade="R3")   # R4 승격은 금지
+    elif profile.sensitivity == "LOW":
+        base = bump_down(base, steps=1)
+
+    return base
+</code></pre>
+
+<h3 id="s7-2" class="anchor-pad">7.2 액션 매트릭스</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>액션</th><th>R0</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th></tr></thead>
+<tbody>
+<tr><td>판정 기록 (<code>risk_assessments</code>)</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td></tr>
+<tr><td>인앱 활동 피드 노출</td><td>—</td><td>●</td><td>●</td><td>●</td><td>●</td></tr>
+<tr><td>무음 푸시 (배지만)</td><td>—</td><td>—</td><td>●</td><td>—</td><td>—</td></tr>
+<tr><td>소리·진동 푸시</td><td>—</td><td>—</td><td>—</td><td>●</td><td>●</td></tr>
+<tr><td>SMS 백업 발송</td><td>—</td><td>—</td><td>—</td><td>15분 무응답 시</td><td>즉시</td></tr>
+<tr><td>본인확인 요청 (2탭)</td><td>—</td><td>—</td><td>—</td><td>●</td><td>●</td></tr>
+<tr><td>카드 자동 정지</td><td>—</td><td>—</td><td>—</td><td>“아니에요” 응답 시</td><td>●&nbsp;즉시</td></tr>
+<tr><td>동일 카드 후속 거래 감시 강화</td><td>—</td><td>—</td><td>—</td><td>24h</td><td>72h</td></tr>
+<tr><td>감사 로그 기록</td><td>—</td><td>—</td><td>●</td><td>●</td><td>●</td></tr>
+<tr><td>운영자 대시보드 큐 등록</td><td>—</td><td>—</td><td>—</td><td>—</td><td>●</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>액션 실행 순서와 실패 처리</h4>
+<pre><code>async def execute_action(assessment):
+    grade = assessment.grade
+    plan  = ACTION_MATRIX[grade]
+
+    # 1) 감사 로그 먼저 — 이후 단계가 실패해도 흔적은 남는다
+    await audit.write(actor="SYSTEM", action=f"ASSESS_{grade}",
+                      target_type="transaction", target_id=assessment.tx_id,
+                      payload={"score": assessment.score,
+                               "reasons": assessment.reasons})
+
+    # 2) 카드 정지가 먼저, 알림이 나중 (R4)
+    #    순서가 중요하다 — 알림 먼저 보내면 사용자가 놀라서 앱을 여는 동안
+    #    추가 부정 결제가 진행될 수 있다.
+    if plan.freeze:
+        result = await freeze_card(assessment.card_id,
+                                   reason=assessment.reasons[0],
+                                   idempotency_key=f"frz-{assessment.id}")
+        if not result.ok:
+            await retry_queue.push(FreezeTask(assessment.id), delays=[5, 30, 120])
+            await ops_alert("FREEZE_FAILED", severity="P1",
+                            detail=assessment.id)
+            # 정지 실패해도 알림은 반드시 보낸다 (사용자가 직접 조치 가능)
+
+    # 3) 알림 (채널 폴백 체인)
+    if plan.notify:
+        ok = await push.send(assessment.user_id, build_message(assessment))
+        if not ok and plan.sms_fallback:
+            await sms.send(assessment.user_id, build_sms(assessment))
+
+    # 4) 응답 대기 타이머 등록
+    if grade in ("R3", "R4"):
+        await scheduler.schedule(
+            f"alert-timeout-{assessment.id}",
+            run_at=now() + timedelta(minutes=15),
+            handler=handle_no_response)
+</code></pre>
+
+<h3 id="s7-3" class="anchor-pad">7.3 알림 카피와 피로도 관리</h3>
+
+<h4>알림 문구 템플릿</h4>
+<pre><code>[R3 푸시]
+제목: 평소와 다른 결제가 확인됐어요
+본문: 컴퓨존 온라인 312,000원 (8/8 19:30)
+     · 평소 결제 상위 1%(145,000원)를 넘는 금액이에요
+     · 한 번도 이용한 적 없는 가맹점이에요
+버튼: [내가 한 결제예요]  [내가 안 했어요]
+
+[R4 푸시]
+제목: 카드 사용을 임시로 중단했어요
+본문: 신한카드(1234) · 롯데백화점 1,850,000원 (8/8 03:12)
+     · 최근 1시간 동안 5건이 연속 결제됐어요
+     · 평소 결제가 거의 없는 새벽 시간대예요
+     안전을 위해 카드를 정지했습니다.
+버튼: [본인 결제예요, 해제하기]  [도난·분실 신고]
+
+[R2 무음 푸시]
+제목: 오늘 지출이 평소보다 많아요
+본문: 오늘 하루 지출이 평소의 2.4배예요. 내역을 확인해 보세요.
+</code></pre>
+
+<h4>문구 작성 원칙</h4>
+<ul>
+<li><strong>사실 → 근거 → 행동</strong> 순서. 무엇이 일어났는지 먼저 말하고, 왜 알리는지 설명하고, 무엇을 하면 되는지 제시한다.</li>
+<li><strong>단정하지 않는다.</strong> “부정 결제가 발생했습니다”(×) → “평소와 다른 결제가 확인됐어요”(○). 대부분은 본인 결제다.</li>
+<li><strong>숫자를 반드시 넣는다.</strong> 사용자가 기억을 대조할 수 있어야 한다.</li>
+<li><strong>공포 마케팅 금지.</strong> “해킹 위험!” 같은 표현은 신뢰를 깎는다.</li>
+<li>R4는 <strong>이미 조치했음을 먼저 알린다.</strong> “정지할까요?”가 아니라 “정지했어요”.</li>
+</ul>
+
+<h4>알림 피로도 제어</h4>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>규칙</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>일일 상한</td><td>R1·R2 합산 하루 2건. 초과분은 인앱 피드로만. <strong>R3·R4는 상한 없음</strong></td></tr>
+<tr><td>쿨다운</td><td>동일 가맹점 알림 후 24시간 내 재알림 억제 (금액이 직전의 2배 초과면 예외)</td></tr>
+<tr><td>학습 억제</td><td>“내가 했어요” 응답한 (가맹점 × 금액대) 조합은 <strong>90일간 R2 이하로 강등</strong></td></tr>
+<tr><td>야간 배려</td><td>R1·R2는 23시~08시 발송 보류 후 아침 일괄. R3·R4는 즉시</td></tr>
+<tr><td>묶음 처리</td><td>10분 내 동일 카드 다건 R2는 1건으로 요약 발송</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s7-4" class="anchor-pad">7.4 카드 상태 머신</h3>
+
+<div class="diagram">
+<pre>
+                    ┌──────────────┐
+          ┌────────▶│    ACTIVE    │◀────────────┐
+          │         └──────┬───────┘             │
+          │                │                     │
+          │                │ R4 판정             │ 2FA 성공
+          │                │ or 사용자 요청       │ or 운영자 해제
+          │                ▼                     │
+          │         ┌──────────────┐             │
+          │         │   FREEZING   │  카드사 API │
+          │         │  (전환 중)    │  호출 대기   │
+          │         └──────┬───────┘             │
+          │       성공 ────┤──── 실패(3회)       │
+          │                ▼          ▼          │
+          │         ┌──────────────┐ ┌──────────────────┐
+          │         │    FROZEN    │ │ FREEZE_FAILED    │
+          │         │              │ │ (수동처리 큐)     │
+          │         └──────┬───────┘ └────────┬─────────┘
+          │                │                  │ 운영자 개입
+          │                │                  └──────────┐
+          │                │ 사용자 해제 요청             │
+          │                ▼                             │
+          │         ┌──────────────┐                     │
+          │         │ UNFREEZE_    │  2FA 요구           │
+          │         │ PENDING      │  (SMS OTP + 생체)    │
+          │         └──────┬───────┘                     │
+          │        성공 ───┤─── 실패 3회 ──▶ FROZEN 유지 │
+          └────────────────┘                             │
+                                                         │
+          ┌──────────────┐  "도난·분실 신고" 선택         │
+          │  REPORTED    │◀────────────────────────────  ┘
+          │  (해제 불가)  │  → 카드사 정식 분실신고 이관
+          └──────────────┘  → 재발급 절차, 시스템 내 해제 경로 없음
+</pre>
+</div>
+<p class="cap">그림 7-1. 카드 상태 전이. <code>REPORTED</code>는 단방향 종단 상태로, 시스템에서 되돌릴 수 없다.</p>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>전이</th><th>트리거</th><th>권한</th><th>부가 조건</th><th>SLA</th></tr></thead>
+<tbody>
+<tr><td>ACTIVE → FREEZING</td><td>R4 판정</td><td>시스템</td><td>L1 HIGH 룰 히트 필수</td><td>판정 후 2초 내</td></tr>
+<tr><td>ACTIVE → FREEZING</td><td>사용자 “내가 안 했어요”</td><td>사용자</td><td>—</td><td>1초 내</td></tr>
+<tr><td>FREEZING → FROZEN</td><td>카드사 API 200</td><td>시스템</td><td>멱등키 사용</td><td>5초 내</td></tr>
+<tr><td>FREEZING → FREEZE_FAILED</td><td>3회 재시도 실패</td><td>시스템</td><td>운영자 알림 <span class="chip c-p0">P0</span> + 사용자 SMS 안내</td><td>3분 내</td></tr>
+<tr><td>FROZEN → UNFREEZE_PENDING</td><td>사용자 해제 요청</td><td>사용자</td><td>—</td><td>즉시</td></tr>
+<tr><td>UNFREEZE_PENDING → ACTIVE</td><td>2FA 성공</td><td>사용자</td><td>OTP + 기기 생체인증 <strong>둘 다</strong></td><td>60초 내 반영</td></tr>
+<tr><td>FROZEN → REPORTED</td><td>도난·분실 신고</td><td>사용자</td><td>되돌릴 수 없음, 확인 다이얼로그 2단계</td><td>즉시</td></tr>
+<tr><td>* → ACTIVE</td><td>운영자 수동 해제</td><td>운영자</td><td>사유 필수 입력, 감사 로그, 2인 승인</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="t">정지 API 호출의 멱등성</div>
+  <p>네트워크 타임아웃으로 재시도할 때 카드사에는 이미 정지가 반영됐을 수 있다. 반드시 <code>Idempotency-Key: frz-{assessment_id}</code>를 헤더로 보내고, 카드사가 지원하지 않으면 <em>정지 전 상태 조회 → 이미 FROZEN이면 성공 처리</em>로 대응한다. 해제(unfreeze)도 동일하다. 이 처리가 없으면 “해제했는데 다시 정지되는” 버그가 반드시 발생한다.</p>
+</div>
+
+<h3 id="s7-5" class="anchor-pad">7.5 피드백 루프</h3>
+
+<p>원안에는 없었지만 실무 품질을 만드는 가장 중요한 장치다. 사용자의 응답이 <strong>라벨</strong>이 되어 시스템을 개선한다.</p>
+
+<div class="diagram">
+<pre>
+  알림 발송 ──▶ 사용자 응답 ──▶ labels 테이블 ──┬──▶ [즉시] 억제 규칙 등록
+                                               │      (가맹점×금액대 90일 강등)
+                                               │
+                                               ├──▶ [일간] 룰별 Precision 재계산
+                                               │      → Precision &lt; 0.2 룰 자동 비활성 제안
+                                               │
+                                               ├──▶ [주간] L2 가중치 재탐색
+                                               │      → 챌린저 후보 생성
+                                               │
+                                               └──▶ [월간] L3 재학습 데이터셋 갱신
+                                                      → 챔피언-챌린저 평가 (10.4)
+</pre>
+</div>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>사용자 응답</th><th>라벨</th><th>신뢰도</th><th>즉시 조치</th></tr></thead>
+<tbody>
+<tr><td>“내가 한 결제예요”</td><td><code>is_anomaly=false</code></td><td>0.95</td><td>억제 규칙 등록, 가맹점 친숙도 +1</td></tr>
+<tr><td>“내가 안 했어요”</td><td><code>is_anomaly=true</code></td><td>1.00</td><td>카드 즉시 정지, 동일 패턴 룰 가중치 +10%</td></tr>
+<tr><td>“도난·분실 신고”</td><td><code>is_anomaly=true</code></td><td>1.00</td><td>REPORTED 전이, 최근 72h 거래 전부 이상 라벨</td></tr>
+<tr><td>무응답 (15분)</td><td>라벨 없음</td><td>—</td><td>학습에 사용하지 않음 (약한 신호로도 쓰지 않는다)</td></tr>
+<tr><td>알림 삭제/무시 (24h)</td><td>약한 <code>false</code></td><td>0.40</td><td>참고용으로만 기록, 학습 가중치 0.4</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box info">
+  <div class="t">무응답을 “정상”으로 처리하면 안 되는 이유</div>
+  <p>무응답의 원인은 다양하다 — 알림을 못 봤을 수도, 폰을 잃어버렸을 수도, 실제로 카드를 도난당해 대응 중일 수도 있다. 이를 “정상”으로 라벨링하면 모델이 <em>진짜 사기 케이스를 정상으로 학습</em>하는 최악의 오염이 발생한다. 무응답은 <strong>라벨 없음(unlabeled)</strong>으로 두고, PU-learning이나 준지도 학습에서만 활용한다.</p>
+</div>
+
+<h2 id="s8" class="anchor-pad"><span class="num">08</span>UX 플로우</h2>
+
+<h3>8.1 온보딩</h3>
+<div class="diagram">
+<pre>
+ [1] 서비스 소개            [2] 동의                    [3] 카드 연동
+ ──────────────────        ──────────────────         ──────────────────
+ "내 소비 패턴을            ☑ 필수  거래내역 수집·이용   카드사 선택 →
+  학습해서 이상한            ☑ 필수  이상거래 탐지 목적   인증 →
+  결제를 잡아드려요"         ☐ 선택  서비스 개선 활용     최근 12개월 수집
+                            ☐ 선택  마케팅 수신          (진행률 표시)
+      [시작하기]                [동의하고 계속]              ↓
+                                                       [4] 학습 중 안내
+                            각 항목마다 "왜 필요한가요?"  ──────────────────
+                            펼침 설명 제공               "약 2주간 패턴을
+                                                        학습해요. 그 동안은
+                                                        기본 기준으로 보호해요"
+                                                        진행률: ●●●○○ 30건/100건
+                                                             ↓
+                                                       [5] 민감도 설정
+                                                       ──────────────────
+                                                       ○ 조용히  (오탐 최소)
+                                                       ● 기본
+                                                       ○ 민감하게(놓침 최소)
+                                                       + 카드 자동정지 허용 ☑
+</pre>
+</div>
+
+<h3>8.2 알림 → 확인 → 조치 시퀀스</h3>
+<div class="diagram">
+<pre>
+ 사용자        앱             API            판정엔진        카드사
+   │            │              │                │              │
+   │            │              │◀───거래 수신───┼──────────────│
+   │            │              │                │              │
+   │            │              │───스코어링────▶│              │
+   │            │              │◀──R3 / 근거 3개│              │
+   │            │              │                │              │
+   │◀───푸시────┼──────────────│                │              │
+   │  "평소와 다른 결제"         │                │              │
+   │            │              │                │              │
+   │──탭────────▶│              │                │              │
+   │            │──GET /alerts/{id}────────────▶│              │
+   │            │◀─거래 상세 + 근거 + 평소범위 비교차트         │
+   │            │              │                │              │
+   │  [내가 안 했어요]           │                │              │
+   │──탭────────▶│              │                │              │
+   │            │──POST /alerts/{id}/respond───▶│              │
+   │            │              │──freeze 요청──────────────────▶│
+   │            │              │◀────200 OK────────────────────│
+   │            │◀─정지 완료 + 다음 단계 안내────│              │
+   │◀───화면────│              │                │              │
+   │  "카드를 정지했어요.        │                │              │
+   │   재발급을 신청하시겠어요?"  │                │              │
+   │            │              │                │              │
+   │            │              │──라벨 적재─────▶ labels        │
+   │            │              │──감사로그──────▶ audit_logs    │
+</pre>
+</div>
+
+<h3>8.3 핵심 화면 정의</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>화면</th><th>목적</th><th>핵심 요소</th><th>주의점</th></tr></thead>
+<tbody>
+<tr><td>홈 (활동 피드)</td><td>최근 판정 이력 확인</td><td>거래 리스트 + 등급 색상 배지, 미응답 알림 상단 고정</td><td>R0는 표시하지 않는다(노이즈)</td></tr>
+<tr><td>알림 상세</td><td>판단 근거 확인 후 응답</td><td>금액·가맹점·시각, 근거 3줄, <strong>평소 범위 대비 위치 시각화</strong>, 응답 버튼 2개</td><td>버튼은 화면 하단 고정, 오탭 방지 간격 확보</td></tr>
+<tr><td>소비 분석</td><td>내 패턴 이해 (FR-08)</td><td>카테고리별 평소 범위 밴드, 월 추이, 상위 가맹점</td><td>“이 범위를 벗어나면 알려드려요” 문구로 시스템 동작 설명</td></tr>
+<tr><td>카드 관리</td><td>정지·해제</td><td>카드별 상태 배지, 정지 이력, 즉시 정지 버튼</td><td>즉시 정지는 언제나 1탭으로 접근 가능해야 함</td></tr>
+<tr><td>설정</td><td>민감도·예외 관리</td><td>3단계 프리셋, 가맹점 화이트리스트, 여행 모드</td><td>프리셋 변경 시 “알림이 하루 평균 몇 건 늘어납니다” 예상치 표시</td></tr>
+<tr><td>운영 대시보드</td><td>내부 모니터링 (FR-10)</td><td>등급 분포, 룰별 발동수·Precision, 드리프트 지표</td><td>개인 식별 정보 마스킹 필수</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>알림 상세 화면의 “평소 범위 시각화”</h4>
+<div class="diagram">
+<pre>
+   전자·컴퓨터 카테고리에서 내 결제 분포
+
+   0        5만      10만              31.2만
+   ├────────┼────────┼─────────────────┼──────────▶
+   ▓▓▓▓▓▓▓▓▓▓▓▓                        ▲
+   └── 평소 범위 (4건, 4.2만~8.9만) ──┘ 이번 결제
+
+   ※ 이 한 장면이 근거 문장 세 줄보다 강력하다.
+     "평소 범위 밴드 + 현재 결제 위치" 형태를 모든 알림 상세에 넣는다.
+</pre>
+</div>
+
+<h3>8.4 접근성 원칙</h3>
+<ul>
+<li>등급을 <strong>색상으로만</strong> 구분하지 않는다. 아이콘·텍스트 라벨을 함께 제공(색각 이상 대응).</li>
+<li>모든 액션 버튼의 터치 영역 최소 44×44pt, 파괴적 액션(정지·신고)은 다른 버튼과 16pt 이상 이격.</li>
+<li>푸시 알림 본문은 화면 낭독기에서 자연스럽게 읽히도록 숫자에 단위를 명시(<code>312,000원</code>).</li>
+<li>고령 사용자를 위해 본문 최소 15pt, 동적 글꼴 크기 지원.</li>
+</ul>
+
+<h2 id="s9" class="anchor-pad"><span class="num">09</span>API 명세</h2>
+
+<h3 id="s9-1" class="anchor-pad">9.1 설계 원칙</h3>
+<ul>
+<li><strong>버저닝</strong> — URL 경로에 <code>/v1</code>. 파괴적 변경 시에만 버전 상승, 최소 6개월 병행 운영.</li>
+<li><strong>인증</strong> — OAuth 2.0 Bearer. 사용자 토큰(<code>scope: user</code>)과 시스템 토큰(<code>scope: ingest</code>) 분리.</li>
+<li><strong>멱등성</strong> — 모든 <code>POST</code>는 <code>Idempotency-Key</code> 헤더 지원. 동일 키 24시간 내 재요청 시 최초 응답 반환.</li>
+<li><strong>에러 포맷</strong> — RFC 7807 Problem Details 준수.</li>
+<li><strong>페이징</strong> — offset이 아닌 keyset(<code>cursor</code>) 방식.</li>
+<li><strong>Rate Limit</strong> — 사용자 토큰 60 req/min, ingest 토큰 1,000 req/min. 초과 시 <code>429</code> + <code>Retry-After</code>.</li>
+</ul>
+
+<h3 id="s9-2" class="anchor-pad">9.2 엔드포인트 목록</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>설명</th><th>Scope</th><th>P</th></tr></thead>
+<tbody>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">거래 수집</td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/transactions</code></td><td>거래 1건 수집 + 즉시 판정</td><td>ingest</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/transactions/batch</code></td><td>과거 거래 일괄 적재 (판정 없음)</td><td>ingest</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/transactions</code></td><td>거래 목록 조회 (커서 페이징)</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">판정 · 프로파일</td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/assessments/{id}</code></td><td>판정 상세 (근거 포함)</td><td>user</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/assessments/simulate</code></td><td>가상 거래 판정 (테스트·데모용)</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/profile</code></td><td>내 소비 프로파일 조회</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/profile/rebuild</code></td><td>프로파일 강제 재생성</td><td>user</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">알림 · 응답</td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/alerts</code></td><td>알림 목록 (미응답 우선)</td><td>user</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/alerts/{id}/respond</code></td><td>알림 응답 (본인/부인)</td><td>user</td><td><span class="chip c-p0">P0</span></td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">카드 제어</td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/cards</code></td><td>카드 목록 및 상태</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/cards/{id}/freeze</code></td><td>카드 정지</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/cards/{id}/unfreeze</code></td><td>카드 해제 (2FA 필요)</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td colspan="5" style="background:#f0f2f6;font-weight:750">설정 · 운영</td></tr>
+<tr><td><code>PATCH</code></td><td><code>/v1/settings</code></td><td>민감도·자동정지 설정</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/settings/whitelist</code></td><td>가맹점 예외 등록</td><td>user</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/settings/travel-mode</code></td><td>여행 모드 설정</td><td>user</td><td><span class="chip c-p2">P2</span></td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/admin/rules</code></td><td>룰 목록·성능 지표</td><td>admin</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>PATCH</code></td><td><code>/v1/admin/rules/{id}</code></td><td>룰 활성화·가중치 변경</td><td>admin</td><td><span class="chip c-p1">P1</span></td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/admin/metrics</code></td><td>탐지 성능 지표</td><td>admin</td><td><span class="chip c-p1">P1</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s9-3" class="anchor-pad">9.3 주요 요청·응답</h3>
+
+<h4>POST /v1/transactions — 거래 수집 및 판정</h4>
+<pre><code>POST /v1/transactions HTTP/1.1
+Authorization: Bearer {ingest_token}
+Idempotency-Key: 9f1c2e40-3b7a-4c12-9d55-2a8e77b41f03
+Content-Type: application/json
+
+{
+  "user_id": "3f8b1c22-9a44-4e77-b901-77c2f0a1d5e3",
+  "card_ref": "tok_9d1f4a7b2c8e",
+  "approval_no": "88213047",
+  "amount": 312000,
+  "currency": "KRW",
+  "approved_at": "2026-08-08T19:30:44+09:00",
+  "merchant": {
+    "name": "컴퓨존 온라인",
+    "mcc": "5732",
+    "region": "서울 강남구"
+  },
+  "channel": "ONLINE",
+  "tx_type": "APPROVAL",
+  "installment_months": 0
+}
+</code></pre>
+
+<pre><code>HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "tx_id": 8827413,
+  "assessment": {
+    "assessment_id": 4410927,
+    "score": 75,
+    "grade": "R3",
+    "layers": { "l1": 85, "l2": 78, "l3": 68, "l3_status": "OK" },
+    "reasons": [
+      { "code": "R-02",
+        "label": "평소 결제 상위 1%(145,000원)를 넘는 금액이에요",
+        "contribution": 0.41 },
+      { "code": "R-05",
+        "label": "한 번도 이용한 적 없는 가맹점이에요",
+        "contribution": 0.33 },
+      { "code": "L2-CONTEXT",
+        "label": "전자·컴퓨터에서 평소 최고액(89,000원)의 3.5배예요",
+        "contribution": 0.26 }
+    ],
+    "reference": {
+      "source": "PERSONAL",
+      "profile_version": 142,
+      "personal_p95": 68000,
+      "personal_p99": 145000,
+      "category_max": 89000
+    },
+    "actions": [
+      { "type": "NOTIFY",  "channel": "PUSH", "status": "QUEUED" },
+      { "type": "STEP_UP", "expires_at": "2026-08-08T19:45:44+09:00" }
+    ],
+    "versions": {
+      "rule": "rules-2026.07.3",
+      "model": "iforest-v4-20260715"
+    },
+    "latency_ms": 1584
+  }
+}
+</code></pre>
+
+<h4>POST /v1/alerts/{id}/respond — 사용자 응답</h4>
+<pre><code>POST /v1/alerts/4410927/respond
+Authorization: Bearer {user_token}
+
+{ "response": "NOT_MINE", "note": "이런 사이트 이용한 적 없어요" }
+
+──────────────────────────────────────────────────────────────
+HTTP/1.1 200 OK
+{
+  "alert_id": 4410927,
+  "response": "NOT_MINE",
+  "responded_at": "2026-08-08T19:33:10+09:00",
+  "consequences": [
+    { "action": "CARD_FREEZE", "card_id": "...", "status": "SUCCESS",
+      "completed_at": "2026-08-08T19:33:12+09:00" },
+    { "action": "LABEL_RECORDED", "is_anomaly": true },
+    { "action": "MONITORING_ENHANCED", "duration_hours": 72 }
+  ],
+  "next_steps": [
+    { "type": "REPORT_LOST", "label": "도난·분실 신고하기",
+      "url": "/v1/cards/{id}/report" },
+    { "type": "CONTACT_ISSUER", "label": "카드사 상담 연결",
+      "phone": "1544-XXXX" }
+  ]
+}
+</code></pre>
+
+<h4>에러 응답 (RFC 7807)</h4>
+<pre><code>HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/problem+json
+
+{
+  "type":   "https://api.spendguard.dev/errors/invalid-transaction",
+  "title":  "거래 데이터 검증 실패",
+  "status": 422,
+  "detail": "amount는 0보다 커야 합니다",
+  "instance": "/v1/transactions",
+  "errors": [
+    { "field": "amount", "code": "DQ-01", "message": "amount must be &gt; 0" }
+  ],
+  "trace_id": "01J9XQ8Z7K3M5N2P4R6T8V0W2Y"
+}
+</code></pre>
+
+<h3 id="s9-4" class="anchor-pad">9.4 웹훅 이벤트</h3>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>이벤트</th><th>발생 시점</th><th>페이로드 핵심</th></tr></thead>
+<tbody>
+<tr><td><code>assessment.created</code></td><td>판정 완료 (R2 이상)</td><td>assessment_id, grade, score, reasons</td></tr>
+<tr><td><code>alert.sent</code></td><td>알림 발송 성공</td><td>alert_id, channel, sent_at</td></tr>
+<tr><td><code>alert.responded</code></td><td>사용자 응답</td><td>alert_id, response, responded_at</td></tr>
+<tr><td><code>card.frozen</code></td><td>카드 정지 완료</td><td>card_id, triggered_by, reason</td></tr>
+<tr><td><code>card.unfrozen</code></td><td>카드 해제 완료</td><td>card_id, unfrozen_by</td></tr>
+<tr><td><code>profile.rebuilt</code></td><td>프로파일 갱신</td><td>user_id, version, tx_count</td></tr>
+</tbody>
+</table>
+</div>
+
+<pre><code>// 웹훅 서명 검증 (수신 측 필수 구현)
+// X-SpendGuard-Signature: t=1754648944,v1=5257a869e7...
+
+const signed = `${timestamp}.${rawBody}`;
+const expected = crypto.createHmac('sha256', WEBHOOK_SECRET)
+                       .update(signed).digest('hex');
+if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1))) {
+  throw new Error('invalid signature');
+}
+if (Math.abs(Date.now()/1000 - timestamp) &gt; 300) {
+  throw new Error('timestamp too old');   // 재전송 공격 방지
+}
+</code></pre>
+<h2 id="s10" class="anchor-pad"><span class="num">10</span>모델 운영 (MLOps)</h2>
+
+<h3>10.1 학습 파이프라인</h3>
+<div class="diagram">
+<pre>
+ [월 1회 정기 / 드리프트 감지 시 임시]
+
+ ① 데이터 수집        risk_assessments.features (피처 스냅샷)
+                     + labels (사용자 응답)
+                            │
+ ② 시간 분할          train: T-12M ~ T-2M
+                     valid: T-2M  ~ T-1M
+                     test : T-1M  ~ T          ← 절대 학습에 쓰지 않음
+                            │
+ ③ 전처리            QuantileTransformer(train으로만 fit)
+                     결측 처리, 무한값 클리핑
+                            │
+ ④ 학습              Stage1: IsolationForest (정상 데이터만)
+                     Stage2: LightGBM (라벨 충분 시)
+                            │
+ ⑤ 캘리브레이션       스코어 → 0~100 분위수 매핑 테이블 생성
+                     (Isotonic Regression)
+                            │
+ ⑥ 평가 게이트        아래 10.2 기준 전부 통과해야 승격
+                            │
+ ⑦ 챔피언-챌린저      2주 섀도우 모드 (판정은 하되 액션은 안 함)
+                            │
+ ⑧ 승격 / 폐기        모델 레지스트리에 등록, 버전 태깅
+</pre>
+</div>
+
+<h3 id="s10-2">10.2 평가 지표와 승격 게이트</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>지표</th><th>정의</th><th>승격 기준</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td>PR-AUC</td><td>Precision-Recall 곡선 아래 면적</td><td>≥ 챔피언 − 0.01</td><td>불균형 데이터의 주 지표</td></tr>
+<tr><td>Recall @ FPR 0.5%</td><td>오탐률 0.5% 조건에서의 탐지율</td><td>≥ 0.85</td><td>운영 제약 반영</td></tr>
+<tr><td>Precision @ top 0.5%</td><td>스코어 상위 0.5%의 정밀도</td><td>≥ 0.60</td><td>알림 품질 직결</td></tr>
+<tr><td>Lift @ 1%</td><td>상위 1%의 탐지 밀도 / 무작위</td><td>≥ 20×</td><td>—</td></tr>
+<tr><td>p99 추론 지연</td><td>단건 스코어링 시간</td><td>&lt; 300ms</td><td>SLA 제약</td></tr>
+<tr><td>세그먼트 안정성</td><td>콜드스타트·고변동·저지출 세그먼트별 Recall</td><td>어떤 세그먼트도 전체 대비 −15%p 초과 하락 금지</td><td>공정성 점검</td></tr>
+<tr><td>피처 중요도 안정성</td><td>상위 10개 피처의 순위 변화</td><td>Spearman ρ ≥ 0.7</td><td>급변 시 데이터 이상 의심</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s10-3">10.3 드리프트 모니터링</h3>
+<pre><code># PSI (Population Stability Index) — 피처 분포 변화 감지
+# 학습 시점 분포(expected) vs 최근 7일 분포(actual)
+
+def psi(expected, actual, bins=10):
+    breaks = np.percentile(expected, np.linspace(0, 100, bins + 1))
+    breaks[0], breaks[-1] = -np.inf, np.inf
+    e = np.histogram(expected, breaks)[0] / len(expected)
+    a = np.histogram(actual,   breaks)[0] / len(actual)
+    e, a = np.clip(e, 1e-6, None), np.clip(a, 1e-6, None)
+    return float(np.sum((a - e) * np.log(a / e)))
+
+# 판정 기준
+#   PSI &lt; 0.10  안정          → 조치 없음
+#   0.10~0.25   경미한 변화    → 주간 리포트에 기록, 관찰
+#   PSI ≥ 0.25  유의한 변화    → 재학습 트리거 + 운영 알림 P1
+</code></pre>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>감시 대상</th><th>지표</th><th>주기</th><th>임계</th><th>조치</th></tr></thead>
+<tbody>
+<tr><td>입력 피처 분포</td><td>PSI (피처별)</td><td>일간</td><td>≥ 0.25</td><td>재학습 트리거</td></tr>
+<tr><td>스코어 분포</td><td>평균·p95 이동</td><td>일간</td><td>±20%</td><td>임계값 재검토</td></tr>
+<tr><td>등급 분포</td><td>R3+ 비율</td><td>일간</td><td>기대치의 2배 초과</td><td>즉시 조사 <span class="chip c-p0">P0</span></td></tr>
+<tr><td>알림 응답률</td><td>24h 내 응답 비율</td><td>주간</td><td>&lt; 50%</td><td>알림 UX 재검토</td></tr>
+<tr><td>오탐률</td><td>CONFIRMED_MINE 비율</td><td>주간</td><td>&gt; 50%</td><td>임계값 상향 또는 룰 조정</td></tr>
+<tr><td>모델 성능</td><td>Precision@top0.5%</td><td>월간</td><td>&lt; 0.5</td><td>재학습 + 원인 분석</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="s10-4">10.4 챔피언-챌린저 운영</h3>
+<ul>
+<li><strong>섀도우 모드</strong> — 챌린저는 실제 트래픽을 받아 판정하지만 액션을 실행하지 않는다. 챔피언과 결과를 나란히 기록해 2주간 비교한다.</li>
+<li><strong>비교 기준</strong> — 동일 거래에 대한 등급 불일치율, 챌린저 단독 탐지 건의 사후 라벨, 지연 시간.</li>
+<li><strong>승격 조건</strong> — 10.2 게이트 전부 통과 <strong>AND</strong> 챌린저 단독 탐지의 Precision ≥ 챔피언 수준 <strong>AND</strong> 지연 SLA 위반 없음.</li>
+<li><strong>롤백</strong> — 승격 후 72시간 내 R3+ 발생률이 이전 대비 2배를 넘으면 자동 롤백. 모델 버전은 즉시 전환 가능하도록 레지스트리에서 포인터만 변경한다.</li>
+</ul>
+
+<h2 id="s11" class="anchor-pad"><span class="num">11</span>규제·보안 요구사항</h2>
+
+<div class="box danger">
+  <div class="t">먼저 짚을 것 — 실제 서비스화 시 필요한 자격</div>
+  <p>타인의 금융거래 정보를 상시 수집·분석하는 서비스는 국내에서 <strong>신용정보법상 본인신용정보관리업(마이데이터) 허가</strong> 또는 카드사와의 정식 제휴가 필요하다. 개인이 만든 앱이 사용자 계정 정보를 받아 카드사 사이트를 대신 조회(스크래핑)하는 방식은 약관 위반이자 법적 위험이 크다. <strong>본 프로젝트는 합성 데이터 또는 사용자가 직접 내려받아 업로드한 자기 데이터만을 사용하며, 실서비스 전환 시 반드시 법률 검토를 선행한다</strong>는 전제를 문서 전면에 명시한다. 이 문장을 넣는 것 자체가 포트폴리오 심사에서 감점이 아니라 가점 요소다.</p>
+</div>
+
+<h3>11.1 개인정보 처리 원칙</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>원칙</th><th>본 시스템의 구현</th></tr></thead>
+<tbody>
+<tr><td>목적 제한</td><td>수집한 거래정보는 <em>이상거래 탐지</em> 목적으로만 사용. 마케팅·신용평가 목적 사용 금지를 코드 레벨에서 분리(별도 스키마, 별도 접근 롤)</td></tr>
+<tr><td>최소 수집</td><td>4.1의 필드만 수집. PAN·CVC·GPS·품목상세·주민번호 미수집</td></tr>
+<tr><td>동의 분리</td><td>필수(탐지)와 선택(서비스 개선 학습)을 분리. 선택 미동의자의 데이터는 모델 학습에서 제외</td></tr>
+<tr><td>보관 기간</td><td>거래 원장 13개월(핫)+5년(콜드), 판정 이력 5년, 감사로그 5년, 탈퇴 시 30일 내 파기</td></tr>
+<tr><td>파기</td><td>탈퇴 요청 시 개인식별 데이터 즉시 삭제, 통계 학습에 사용된 집계값은 비식별 형태로만 잔존</td></tr>
+<tr><td>제3자 제공</td><td>없음. 카드 정지 API 호출 시 카드사에 전달되는 정보는 카드 식별자와 정지 사유 코드로 한정</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>11.2 보안 설계</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>영역</th><th>요구사항</th><th>구현</th></tr></thead>
+<tbody>
+<tr><td>전송 암호화</td><td>TLS 1.3, HSTS</td><td>모든 엔드포인트, 내부 서비스 간 통신 포함 mTLS</td></tr>
+<tr><td>저장 암호화</td><td>민감 컬럼 개별 암호화</td><td><code>card_ref</code>, <code>merchant_name</code>은 AES-256-GCM. 키는 KMS 관리, 90일 로테이션</td></tr>
+<tr><td>카드 식별</td><td>PAN 미저장</td><td>발급사 토큰 또는 <code>SHA-256(PAN‖user_salt)</code>. salt는 사용자별 분리</td></tr>
+<tr><td>접근 통제</td><td>최소 권한 원칙</td><td>DB 롤 4종 분리: <code>app_rw</code>, <code>app_ro</code>, <code>batch</code>, <code>audit_ro</code>. 운영자는 개인 데이터 직접 조회 불가, 마스킹 뷰만 접근</td></tr>
+<tr><td>로그</td><td>민감정보 로그 금지</td><td>구조화 로깅 시 <code>amount</code>는 구간화, <code>merchant_name</code>은 해시. 정규식 기반 자동 마스킹 필터</td></tr>
+<tr><td>감사</td><td>변조 불가</td><td><code>audit_logs</code>는 append-only(UPDATE/DELETE 권한 회수). 일 1회 해시 체인 검증</td></tr>
+<tr><td>2FA</td><td>중요 액션 보호</td><td>카드 해제, 설정 변경, 데이터 내보내기는 OTP + 생체인증</td></tr>
+<tr><td>비밀 관리</td><td>코드에 비밀 없음</td><td>환경변수/Secret Manager. 저장소에는 <code>.env.example</code>만</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>11.3 자동화된 의사결정과 설명요구권</h3>
+<p>카드 정지는 사용자 권익에 실질적 영향을 주는 자동화된 결정이다. 따라서 다음을 보장한다.</p>
+<ul>
+<li><strong>사전 고지</strong> — 온보딩에서 “자동 정지가 발생할 수 있음”과 그 조건을 명시하고, 자동 정지 자체를 <em>거부(opt-out)</em>할 수 있게 한다.</li>
+<li><strong>설명 제공</strong> — 모든 정지에는 사람이 읽을 수 있는 근거 3개 이내를 함께 제공한다(6.8).</li>
+<li><strong>이의 제기 경로</strong> — 앱 내 1탭으로 해제 요청, 운영자 수동 검토 요청 가능.</li>
+<li><strong>사람의 개입</strong> — R4 정지는 24시간 내 운영자 사후 검토 큐에 자동 등록된다.</li>
+</ul>
+
+<h3>11.4 공정성·편향 점검</h3>
+<p>모델이 특정 집단에 불리하게 작동하지 않는지 정기 점검한다. 단, <strong>점검을 위해 성별·연령 같은 민감 속성을 새로 수집하지 않는다</strong>. 대신 행동 기반 세그먼트(지출 규모, 거래 빈도, 온라인 비율, 콜드스타트 여부)별로 오탐률 격차를 본다.</p>
+<pre><code># 세그먼트별 오탐률 격차 점검 (월간)
+for seg in ["low_spend", "high_spend", "low_freq", "high_freq",
+            "cold_start", "high_variance"]:
+    fpr = false_positive_rate(seg)
+    if fpr &gt; overall_fpr * 1.5:
+        report_fairness_issue(seg, fpr, overall_fpr)
+        # → 해당 세그먼트 임계값 오프셋 조정 검토
+</code></pre>
+<p class="footnote">고변동 사용자(P2 페르소나)가 구조적으로 더 많은 오탐을 받는 것은 예견 가능한 문제다. 5.4의 개인 분산 반영과 세그먼트별 임계값 오프셋으로 완화한다.</p>
+
+<h2 id="s12" class="anchor-pad"><span class="num">12</span>비기능 요구사항</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>영역</th><th>요구사항</th><th>측정</th></tr></thead>
+<tbody>
+<tr><td>NFR-01</td><td>지연</td><td>거래 수신 → 판정 완료 p99 &lt; 3초, p50 &lt; 800ms</td><td>Prometheus 히스토그램</td></tr>
+<tr><td>NFR-02</td><td>지연</td><td>판정 완료 → 알림 발송 p99 &lt; 5초</td><td>동일</td></tr>
+<tr><td>NFR-03</td><td>처리량</td><td>초당 50건 지속 처리 (포트폴리오 규모), 피크 200건 버스트 흡수</td><td>부하 테스트</td></tr>
+<tr><td>NFR-04</td><td>가용성</td><td>판정 API 월 99.5% (다운타임 ≤ 3.6h/월)</td><td>SLI: 성공 응답 비율</td></tr>
+<tr><td>NFR-05</td><td>내결함성</td><td>L3(ML) 장애 시에도 판정 계속 수행. Redis 장애 시 DB 폴백</td><td>카오스 테스트</td></tr>
+<tr><td>NFR-06</td><td>정합성</td><td>동일 거래 중복 판정 0건 (멱등성)</td><td>중복 주입 테스트</td></tr>
+<tr><td>NFR-07</td><td>재현성</td><td>과거 임의 판정을 동일 입력으로 재실행 시 동일 결과</td><td>회귀 테스트</td></tr>
+<tr><td>NFR-08</td><td>확장성</td><td>사용자 10배 증가 시 코드 변경 없이 수평 확장 가능</td><td>무상태 서비스 설계</td></tr>
+<tr><td>NFR-09</td><td>배치 성능</td><td>사용자 10,000명 프로파일 재생성 &lt; 30분</td><td>배치 실행 시간</td></tr>
+<tr><td>NFR-10</td><td>관측성</td><td>모든 판정에 <code>trace_id</code> 전파, 로그·메트릭·트레이스 연결</td><td>OpenTelemetry</td></tr>
+<tr><td>NFR-11</td><td>복구</td><td>RPO ≤ 5분, RTO ≤ 1시간</td><td>DR 훈련 분기 1회</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="s13" class="anchor-pad"><span class="num">13</span>테스트 전략</h2>
+
+<h3>13.1 테스트 계층</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>계층</th><th>대상</th><th>도구</th><th>커버리지 목표</th></tr></thead>
+<tbody>
+<tr><td>Unit</td><td>피처 계산 함수, 통계 함수, 룰 평가기</td><td>pytest</td><td>핵심 모듈 라인 커버리지 ≥ 85%</td></tr>
+<tr><td>Property</td><td>스코어는 항상 0~100, 등급 단조성(스코어↑ ⇒ 등급 유지·상승)</td><td>hypothesis</td><td>주요 불변식 12개</td></tr>
+<tr><td>Integration</td><td>수집 → 판정 → 액션 전체 경로, DB·Redis 실제 연결</td><td>pytest + testcontainers</td><td>주요 플로우 8종</td></tr>
+<tr><td>Contract</td><td>API 스키마, 웹훅 페이로드</td><td>schemathesis (OpenAPI 기반)</td><td>전 엔드포인트</td></tr>
+<tr><td>Backtest</td><td>탐지 성능 정량 평가</td><td>자체 하네스 (13.3)</td><td>시나리오 12종</td></tr>
+<tr><td>Load</td><td>NFR-01, NFR-03 검증</td><td>k6 또는 locust</td><td>목표 처리량 ×1.5</td></tr>
+<tr><td>Chaos</td><td>NFR-05 검증</td><td>수동 장애 주입</td><td>ML 다운, Redis 다운, 카드사 API 타임아웃</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>13.2 이상 시나리오 픽스처 (백테스트용)</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>시나리오</th><th>주입 방식</th><th>기대 등급</th></tr></thead>
+<tbody>
+<tr><td>SC-01</td><td>단건 고액 (본 문서 대표 사례)</td><td>개인 p99의 2~3배, 신규 가맹점, 전자제품</td><td>R3</td></tr>
+<tr><td>SC-02</td><td>카드 도난 후 연속 결제</td><td>1시간 내 5건, 서로 다른 가맹점, 총 200만원</td><td>R4</td></tr>
+<tr><td>SC-03</td><td>소액 테스트 후 고액</td><td>1,000원 승인 → 8분 후 50만원</td><td>R4</td></tr>
+<tr><td>SC-04</td><td>심야 해외 결제</td><td>03시, 해외 온라인, 개인 p95의 4배</td><td>R4</td></tr>
+<tr><td>SC-05</td><td>서서히 증가하는 소액 유출</td><td>매일 3만원씩 30일, 동일 가맹점</td><td>R2 (누적 감지)</td></tr>
+<tr><td>SC-06</td><td>미경험 카테고리 진입</td><td>귀금속 MCC 첫 결제 80만원</td><td>R3</td></tr>
+<tr><td>SC-07</td><td>장기 미사용 후 고액</td><td>45일 미사용 → 60만원</td><td>R3</td></tr>
+<tr><td colspan="4" style="background:#f0f2f6;font-weight:750">정상인데 이상해 보이는 케이스 — 오탐 검증용</td></tr>
+<tr><td>SC-08</td><td>월급날 정기 고액 결제</td><td>매월 25일 카드값·보험료</td><td>R0 (routine)</td></tr>
+<tr><td>SC-09</td><td>올리브영 세일 대량구매</td><td>단골 특수 가맹점 28만원</td><td>R0~R1</td></tr>
+<tr><td>SC-10</td><td>여행 중 해외 결제</td><td>여행 모드 활성 상태 해외 다건</td><td>R1~R2</td></tr>
+<tr><td>SC-11</td><td>명절 선물 구매</td><td>백화점 고액, 연 2회 반복 패턴</td><td>R1</td></tr>
+<tr><td>SC-12</td><td>할부 가전 구매</td><td>12개월 할부 150만원, 단골 가전 매장</td><td>R1~R2</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>13.3 백테스트 프로토콜</h3>
+<pre><code># 백테스트는 반드시 "그 시점에 알 수 있었던 정보만" 사용해야 한다.
+# Walk-forward 방식으로 시간을 따라가며 재현한다.
+
+def backtest(users, start_date, end_date):
+    results = []
+    for day in daterange(start_date, end_date):
+        # 1) 그날 새벽 프로파일 갱신 (그 이전 90일 데이터로만)
+        profiles = {u: build_profile(u, window_end=day) for u in users}
+
+        # 2) 그날 거래를 시간 순으로 판정
+        for tx in transactions_on(day, order_by="approved_at"):
+            feats = build_features(tx, profiles[tx.user_id],
+                                   velocity_up_to(tx.approved_at))  # ← 미래 배제
+            assessment = assess(tx, profiles[tx.user_id], feats)
+            results.append({
+                "tx_id": tx.id, "score": assessment.score,
+                "grade": assessment.grade,
+                "truth": injected_label(tx.id),      # 시뮬레이터가 아는 정답
+            })
+    return evaluate(results)   # PR-AUC, Recall@FPR, Precision@k, 세그먼트별
+
+
+# 금지 사항 체크리스트
+#  □ 미래 거래가 프로파일에 포함되지 않았는가
+#  □ 현재 거래 자신이 통계에 포함되지 않았는가 (5.1 누수 경고)
+#  □ 라벨을 피처로 쓰지 않았는가
+#  □ 정규화 파라미터를 전체 데이터로 fit하지 않았는가
+</code></pre>
+
+<h3>13.4 수용 기준 (AC)</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>수용 기준</th><th>검증 방법</th></tr></thead>
+<tbody>
+<tr><td>AC-CORE-01</td><td>2.3 시나리오 입력 시 R3 판정 + 근거 3개 반환</td><td>통합 테스트 고정 픽스처</td></tr>
+<tr><td>AC-CORE-02</td><td>SC-01~SC-07 중 6개 이상 기대 등급 일치</td><td>백테스트</td></tr>
+<tr><td>AC-CORE-03</td><td>SC-08~SC-12 전부 R2 이하</td><td>백테스트 (오탐 검증)</td></tr>
+<tr><td>AC-FEAT-01</td><td>배치·실시간 피처 계산 결과 상대오차 &lt; 1e-6</td><td>CI 자동 검증</td></tr>
+<tr><td>AC-PERF-01</td><td>1,000건 연속 판정 p99 &lt; 3초</td><td>부하 테스트</td></tr>
+<tr><td>AC-FAIL-01</td><td>ML 서비스 종료 상태에서도 판정 성공률 100%</td><td>카오스 테스트</td></tr>
+<tr><td>AC-IDEM-01</td><td>동일 거래 10회 전송 시 판정 1건, 알림 1건</td><td>통합 테스트</td></tr>
+<tr><td>AC-SEC-01</td><td>로그 전문 grep 시 카드번호 패턴·실명 미검출</td><td>정적 스캔</td></tr>
+<tr><td>AC-UX-01</td><td>알림 수신 → 응답 완료까지 2탭 이내</td><td>수동 검증</td></tr>
+<tr><td>AC-REPRO-01</td><td>임의 과거 판정 100건 재실행 시 100% 동일 결과</td><td>회귀 테스트</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="s14" class="anchor-pad"><span class="num">14</span>운영 지표와 대시보드</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>분류</th><th>지표</th><th>목표</th><th>주기</th><th>경보</th></tr></thead>
+<tbody>
+<tr><td rowspan="4">제품</td><td>Alert Precision</td><td>≥ 60%</td><td>주간</td><td>&lt; 40% 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>1인당 일 알림 수</td><td>≤ 0.5</td><td>일간</td><td>&gt; 1.0 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>알림 응답률 (24h)</td><td>≥ 60%</td><td>주간</td><td>&lt; 40% 시 <span class="chip c-p2">P2</span></td></tr>
+<tr><td>기능 유지율 (30d)</td><td>≥ 90%</td><td>월간</td><td>&lt; 80% 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td rowspan="3">탐지</td><td>등급 분포 (R3+ 비율)</td><td>0.4~0.6%</td><td>일간</td><td>2배 이탈 시 <span class="chip c-p0">P0</span></td></tr>
+<tr><td>룰별 Precision</td><td>각 ≥ 30%</td><td>주간</td><td>&lt; 20% 룰 자동 비활성 제안</td></tr>
+<tr><td>PSI (주요 피처)</td><td>&lt; 0.25</td><td>일간</td><td>≥ 0.25 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td rowspan="5">시스템</td><td>판정 p99 지연</td><td>&lt; 3s</td><td>실시간</td><td>5분 연속 초과 시 <span class="chip c-p0">P0</span></td></tr>
+<tr><td>판정 성공률</td><td>≥ 99.5%</td><td>실시간</td><td>&lt; 99% 시 <span class="chip c-p0">P0</span></td></tr>
+<tr><td>L3 타임아웃 비율</td><td>&lt; 2%</td><td>실시간</td><td>&gt; 10% 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>프로파일 신선도</td><td>&lt; 26h</td><td>일간</td><td>&gt; 48h 사용자 존재 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>카드 정지 성공률</td><td>≥ 99%</td><td>실시간</td><td>실패 1건도 <span class="chip c-p0">P0</span></td></tr>
+<tr><td rowspan="2">데이터</td><td>일 수집 건수</td><td>7일 MA ±50%</td><td>일간</td><td>이탈 시 <span class="chip c-p1">P1</span></td></tr>
+<tr><td>DLQ 적재 건수</td><td>&lt; 전체의 0.1%</td><td>일간</td><td>초과 시 <span class="chip c-p2">P2</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="s15" class="anchor-pad"><span class="num">15</span>로드맵</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>마일스톤</th><th>기간</th><th>산출물</th><th>완료 기준(Exit Criteria)</th></tr></thead>
+<tbody>
+<tr><td><strong>M1 · 데이터 기반</strong></td><td>1~3주</td><td>· 합성 데이터 생성기(부록 A)<br>· DB 스키마 + 마이그레이션<br>· 수집 API + 정규화 + DQ 규칙<br>· 카테고리 택소노미·특수가맹점 분류</td><td>사용자 200명 × 12개월 거래 적재 완료, DQ 위반률 &lt; 0.1%</td></tr>
+<tr><td><strong>M2 · 프로파일 &amp; 룰</strong></td><td>4~6주</td><td>· 프로파일 배치 잡<br>· L1 룰 엔진 + 15개 룰<br>· L2 통계 스코어러<br>· 판정 API + 근거 생성</td><td>AC-CORE-01 통과, SC-01~07 중 5개 탐지, p99 &lt; 1s</td></tr>
+<tr><td><strong>M3 · ML &amp; 액션</strong></td><td>7~9주</td><td>· IsolationForest 학습·서빙<br>· 스코어 융합 + 등급<br>· 알림·카드정지 액션 레이어<br>· 상태 머신 + 피드백 루프</td><td>AC-CORE-02·03 통과, AC-FAIL-01 통과, 백테스트 Recall ≥ 0.85 @ FPR 0.5%</td></tr>
+<tr><td><strong>M4 · 완성도</strong></td><td>10~12주</td><td>· 사용자 앱 화면(또는 웹 데모)<br>· 운영 대시보드<br>· 드리프트 모니터링<br>· 문서·발표자료</td><td>전체 AC 통과, 데모 시나리오 5종 무결점 시연</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box info">
+  <div class="t">우선순위 조언 — 시간이 부족하다면</div>
+  <p>M2까지만 완성해도 <strong>“개인 소비 분포 기반 이상탐지”라는 프로젝트의 핵심 주장은 완전히 증명된다.</strong> ML(M3의 L3)은 성능 기여가 생각보다 작고 구현 비용은 크다. 순서를 지켜야 한다면 <em>L1+L2 완성 → 백테스트로 정량 성능 제시 → 알림/정지 액션 → 그 다음에 ML</em>이다. 반대로 ML부터 시작하면 “왜 이 점수가 나왔는지” 설명할 수 없어 발표에서 가장 아픈 질문에 답하지 못한다.</p>
+</div>
+
+<h2 id="s16" class="anchor-pad"><span class="num">16</span>리스크 레지스터</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ID</th><th>리스크</th><th>영향</th><th>가능성</th><th>대응</th></tr></thead>
+<tbody>
+<tr><td>RK-01</td><td>실데이터 확보 불가 → 성능 주장의 신뢰성 약화</td><td>높음</td><td>높음</td><td>합성 데이터의 생성 가정을 문서화하고, 공개 데이터셋(IEEE-CIS 등)으로 교차 검증. “합성 데이터 기준”임을 결과 어디에나 명시</td></tr>
+<tr><td>RK-02</td><td>오탐 과다로 사용성 붕괴</td><td>높음</td><td>중간</td><td>등급 분리(R3와 R4), 알림 상한, 억제 규칙, 민감도 프리셋</td></tr>
+<tr><td>RK-03</td><td>콜드스타트 사용자 보호 공백</td><td>중간</td><td>높음</td><td>peer group 폴백, 자동정지 비활성, 학습 진행률 UI 노출</td></tr>
+<tr><td>RK-04</td><td>피처 누수로 백테스트 성능 과대평가</td><td>높음</td><td>중간</td><td>walk-forward 프로토콜 강제, CI 체크리스트, 코드리뷰 항목화</td></tr>
+<tr><td>RK-05</td><td>카드사 정지 API 부재 → 핵심 기능 시연 불가</td><td>중간</td><td>높음</td><td>Mock 카드사 서비스 구현, 상태 머신은 실제와 동일하게 동작시킴</td></tr>
+<tr><td>RK-06</td><td>개인정보 관련 법적 리스크</td><td>높음</td><td>낮음</td><td>합성 데이터 원칙, 11장 명시, 실서비스 전환 시 법률 검토 전제</td></tr>
+<tr><td>RK-07</td><td>ML 모델 성능이 룰보다 낮게 나옴</td><td>낮음</td><td>중간</td><td>정상적인 결과다. 계층별 기여도를 정직하게 보고하는 것이 오히려 분석 역량의 증거</td></tr>
+<tr><td>RK-08</td><td>일정 지연으로 M4 미완</td><td>중간</td><td>중간</td><td>M2를 MVP 경계로 삼고, M3·M4는 기능 단위로 절단 가능하게 설계</td></tr>
+<tr><td>RK-09</td><td>특수 가맹점 분류 오류로 대량 오탐</td><td>중간</td><td>중간</td><td>분류 결과를 수동 검토 큐로 노출, 상위 100개 가맹점은 수동 확정</td></tr>
+<tr><td>RK-10</td><td>라벨 선택 편향으로 모델이 룰을 복제</td><td>중간</td><td>높음</td><td>무작위 알림 0.5% 삽입, PU-learning 적용, 6.4 경고 참조</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="s17" class="anchor-pad"><span class="num">17</span>부록</h2>
+
+<h3>부록 A. 합성 데이터 생성 스펙</h3>
+<p>백테스트가 성립하려면 <strong>정답 라벨이 있는 데이터</strong>가 필요하다. 실데이터에는 라벨이 없으므로 생성기를 만든다. 생성 가정을 문서화하는 것이 이 부록의 목적이다.</p>
+
+<pre><code># ── 사용자 프로파일 생성 ──────────────────────────────────────
+USER_ARCHETYPES = {
+    "student":    {"monthly": (300_000, 800_000),   "tx_per_month": (40, 80),
+                   "online_ratio": 0.45, "cat_weights": {...}},
+    "office":     {"monthly": (800_000, 2_000_000), "tx_per_month": (50, 100),
+                   "online_ratio": 0.35, "cat_weights": {...}},
+    "freelancer": {"monthly": (600_000, 3_000_000), "tx_per_month": (30, 70),
+                   "online_ratio": 0.55, "variance_multiplier": 2.2},
+    "senior":     {"monthly": (500_000, 1_500_000), "tx_per_month": (25, 50),
+                   "online_ratio": 0.12},
+}
+
+# ── 거래 금액 : 로그정규 분포 (실제 소비 분포에 가장 근접) ─────
+#    amount ~ LogNormal(mu, sigma)   where
+#      mu    = ln(카테고리 중앙값)
+#      sigma = 카테고리 분산등급별 0.5(LOW) / 0.9(MID) / 1.4(HIGH)
+#    최소 1,000원, 10원 단위 반올림
+
+# ── 시간 분포 : 이중 봉우리 (점심 12시, 저녁 19시) ─────────────
+#    hour ~ 0.45·N(12.5, 1.8) + 0.45·N(19, 2.2) + 0.10·Uniform(7, 23)
+#    요일 가중: 금·토 1.3배, 월 0.85배
+
+# ── 가맹점 : Zipf 분포 (단골 소수 + 롱테일) ────────────────────
+#    P(merchant_k) ∝ 1 / k^1.1
+#    상위 5개 가맹점이 전체 거래의 약 35% 차지
+
+# ── 정기 거래 주입 ────────────────────────────────────────────
+#    통신요금(매월 15일 ±1일, 금액 변동 ±3%)
+#    구독 3종(고정 금액, 고정일)
+#    교통(주 5회, 1,400~2,800원)
+
+# ── 계절성 ────────────────────────────────────────────────────
+#    12월 지출 1.25배, 5월 1.15배(가정의달), 2월 0.9배
+#    여름 휴가(7~8월 중 1회) 여행 카테고리 급증 구간 삽입
+
+# ── 이상 시나리오 주입 (라벨=True) ────────────────────────────
+#    전체 거래의 0.8%에 13.2절 SC-01~SC-07 패턴을 무작위 시점에 삽입
+#    삽입 시 반드시 injected_label 테이블에 기록
+#    "정상인데 이상해 보이는" SC-08~SC-12도 2%가량 삽입 (라벨=False)
+
+GENERATION_TARGET = {
+    "users": 200, "months": 12,
+    "expected_transactions": 250_000,
+    "anomaly_rate": 0.008,
+    "hard_negative_rate": 0.02,
+}
+</code></pre>
+
+<div class="box warn">
+  <div class="t">합성 데이터의 정직한 한계</div>
+  <p>생성기가 만든 분포로 학습하고 같은 생성기가 만든 이상을 탐지하면 성능이 좋게 나오는 것이 당연하다. 이를 <em>“모델이 잘한다”</em>고 주장하면 안 된다. 발표·문서에서는 반드시 <strong>“합성 데이터 기준 성능이며, 생성 가정은 부록 A에 명시했다”</strong>고 밝히고, 가능하면 공개 데이터셋(IEEE-CIS Fraud Detection, Kaggle Credit Card Fraud 등)에서 <em>같은 파이프라인</em>을 돌린 보조 결과를 함께 제시한다. 한계를 스스로 밝히는 것이 신뢰도를 가장 크게 올린다.</p>
+</div>
+
+<h3>부록 B. 프로젝트 디렉터리 구조</h3>
+<pre><code>spendguard/
+├─ README.md
+├─ docs/
+│  ├─ PRD.html                  ← 본 문서
+│  └─ adr/                      ← 아키텍처 결정 기록
+│     ├─ 001-no-kafka.md
+│     ├─ 002-robust-statistics.md
+│     └─ 003-r4-requires-rule-hit.md
+├─ src/
+│  ├─ ingestion/
+│  │  ├─ api.py                 # POST /v1/transactions
+│  │  ├─ validator.py           # DQ-01~08
+│  │  └─ normalizer.py          # 가맹점명 정제, 카테고리 매핑
+│  ├─ features/
+│  │  ├─ transforms.py          # ★ 단일 구현 원칙 (5.3)
+│  │  ├─ velocity.py            # Redis 슬라이딩 윈도우
+│  │  └─ catalog.py             # F01~F30 정의
+│  ├─ profiling/
+│  │  ├─ builder.py             # 배치 프로파일 생성
+│  │  ├─ peer_groups.py         # 콜드스타트 폴백
+│  │  └─ queries.sql
+│  ├─ detection/
+│  │  ├─ rules/
+│  │  │  ├─ engine.py           # DSL 평가기
+│  │  │  └─ catalog.yaml        # R-01~R-15
+│  │  ├─ statistics.py          # L2 4개 축
+│  │  ├─ ml/
+│  │  │  ├─ train.py
+│  │  │  ├─ serve.py
+│  │  │  └─ calibration.py
+│  │  ├─ fusion.py              # 6.5
+│  │  └─ explain.py             # 6.8 근거 생성
+│  ├─ actions/
+│  │  ├─ policy.py              # 7.2 액션 매트릭스
+│  │  ├─ notifier.py
+│  │  ├─ card_control.py        # 7.4 상태 머신
+│  │  └─ feedback.py            # 7.5
+│  └─ ops/
+│     ├─ metrics.py
+│     ├─ drift.py               # PSI
+│     └─ dashboard.py
+├─ simulator/
+│  ├─ generator.py              # 부록 A
+│  └─ scenarios.py              # SC-01~SC-12
+├─ tests/
+│  ├─ unit/  integration/  backtest/  load/
+│  └─ fixtures/
+├─ migrations/
+└─ notebooks/
+   ├─ 01_eda.ipynb
+   ├─ 02_threshold_tuning.ipynb
+   └─ 03_backtest_report.ipynb
+</code></pre>
+
+<h3>부록 C. 아키텍처 결정 기록(ADR) 요약</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>ADR</th><th>결정</th><th>이유</th><th>포기한 것</th></tr></thead>
+<tbody>
+<tr><td>001</td><td>Kafka 미도입, HTTP + 내부 큐</td><td>요구가 저지연 단건이지 대용량 처리량이 아님</td><td>초당 수만 건 확장성 (인터페이스로 여지 확보)</td></tr>
+<tr><td>002</td><td>평균·표준편차 대신 중앙값·MAD·분위수</td><td>소비 분포가 롱테일이라 평균 기반은 무력화됨</td><td>계산 단순성 (MAD는 2-pass 필요)</td></tr>
+<tr><td>003</td><td>R4 자동정지에 L1 룰 히트 필수 조건</td><td>설명 불가능한 이유로 결제를 막지 않기 위해</td><td>ML만으로 잡히는 일부 케이스의 즉시 차단</td></tr>
+<tr><td>004</td><td>프로파일 append-only 버저닝</td><td>과거 판정 재현성 (NFR-07)</td><td>저장 공간</td></tr>
+<tr><td>005</td><td>무응답을 정상 라벨로 쓰지 않음</td><td>학습 데이터 오염 방지</td><td>라벨 수량</td></tr>
+<tr><td>006</td><td>비지도(IsolationForest) 우선, 지도학습 후순위</td><td>초기에 라벨이 존재하지 않음</td><td>초기 정확도</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>부록 D. 참고 자료</h3>
+<ul>
+<li>금융보안원 — 이상금융거래 탐지시스템(FDS) 관련 자료 및 보도자료</li>
+<li>토스페이먼츠 개발자센터 — FDS 용어 및 개념 정리</li>
+<li>마이데이터 종합포털 — 카드 업권 정보제공 API 규격 (거래·승인내역 스키마 참고)</li>
+<li>IEEE-CIS Fraud Detection Dataset / Kaggle Credit Card Fraud Detection — 교차 검증용 공개 데이터셋</li>
+<li>Amazon Science — Fraud Dataset Benchmark (다중 데이터셋 벤치마크 프레임워크)</li>
+<li>Liu, Ting, Zhou (2008) — <em>Isolation Forest</em>, ICDM</li>
+<li>Leys et al. (2013) — <em>Detecting outliers: Do not use standard deviation around the mean, use absolute deviation around the median</em></li>
+</ul>
+
+<hr>
+
+<h3>개정 이력</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>버전</th><th>일자</th><th>변경 내용</th></tr></thead>
+<tbody>
+<tr><td>v1.0</td><td>2026-08-08</td><td>최초 작성. 초기 워크플로우를 실행 가능한 명세로 확장 (스키마·API·알고리즘·정책·규제·테스트 포함)</td></tr>
+<tr><td>v1.1 (예정)</td><td>M2 완료 시</td><td>실측 기반 임계값·가중치 확정, 룰 카탈로그 성능 반영</td></tr>
+<tr><td>v2.0 (예정)</td><td>M3 완료 시</td><td>ML 모델 성능 결과 반영, 등급 경계 재조정</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box ok" style="margin-top:38px">
+  <div class="t">이 문서를 어떻게 쓰면 좋은가</div>
+  <p>전부를 한 번에 구현하려 하면 12주로도 부족하다. <strong>15장 로드맵의 M1·M2만 먼저 끝내고, 그 결과를 6.7의 임계값 튜닝 절차로 실측해 v1.1을 만드는 것</strong>이 이 문서의 의도된 사용법이다. 특히 발표나 면접에서 강한 인상을 남기는 지점은 “ML을 썼다”가 아니라 <em>“평균 대신 MAD를 쓴 이유”, “R4에 룰 히트를 필수로 건 이유”, “무응답을 정상으로 라벨링하지 않은 이유”</em> 같은 판단의 근거다. 그 근거들은 모두 이 문서 안에 박스로 표시해 두었다.</p>
+</div>
+
+</main>
+</div>
+
+<script>
+// TOC 활성 섹션 하이라이트
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var targets = links.map(function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  });
+  function onScroll() {
+    var pos = window.scrollY + 120, active = 0;
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i] && targets[i].offsetTop <= pos) active = i;
+    }
+    links.forEach(function (a, i) { a.classList.toggle('active', i === active); });
+    var el = links[active];
+    if (el) {
+      var nav = document.getElementById('toc');
+      var top = el.offsetTop - nav.offsetTop;
+      if (top < nav.scrollTop || top > nav.scrollTop + nav.clientHeight - 60) {
+        nav.scrollTop = top - nav.clientHeight / 2;
+      }
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

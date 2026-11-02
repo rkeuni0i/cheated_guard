@@ -5,3 +5,6 @@ data/
 *.db-wal
 *.db-shm
 .pytest_cache/
+
+# macOS
+.DS_Store
